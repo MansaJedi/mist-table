@@ -147,6 +147,23 @@ select.in option{background:#1a1f22;color:var(--ink)}
 #drawer.full .sg{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
 @media (max-height:500px){#drawer.full .sg{gap:8px}#drawer.full .pcb{padding:4px 6px 8px}#drawer.full .pc .in{font-size:14px;min-height:28px}#drawer.full .pc .ib{width:24px;height:24px}#drawer.full .mt span{display:none}#drawer.full .dh{padding:6px 10px}#drawer.full .dh h2{font-size:20px}#drawer.full .pc .box{width:17px;height:17px}#drawer.full .pc .track{gap:2px}#drawer.full .pc .tl{font-size:9px;letter-spacing:.02em}#drawer.full .pc .lbl{font-size:11px}#drawer.full .flip{font-size:11px;padding:5px}#drawer.full .pch{font-size:13px;padding:4px}}
 
+.hero-top{display:flex;gap:10px;align-items:flex-start}
+.hero-id{flex:1;min-width:0}
+.portrait{position:relative;flex:none;width:104px;height:104px}
+.pimg{width:100%;height:100%;border-radius:8px;border:2px solid var(--phd);background:#d9c6a3 center/cover no-repeat;padding:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
+.pimg.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--pdim);font-family:var(--serif);font-weight:700;font-size:13px;letter-spacing:.06em;border-style:dashed}
+.pimg.empty span{font-size:26px;line-height:1}
+.pc .pdel{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#f3e9d4;border:1px solid var(--pln);opacity:1!important}
+.pc .hero-top .hero-name{text-align:left;font-size:24px;margin-top:0}
+.hcard{display:flex!important;align-items:center;gap:12px}
+.htxt{flex:1;min-width:0}
+.hthumb{width:56px;height:56px;border-radius:8px;background:center/cover;flex:none;border:1px solid var(--line)}
+.hthumb.none{display:grid;place-items:center;color:var(--dim);font-family:var(--serif);font-size:24px;background:var(--soft)}
+.peek{text-align:center}.peek h3{margin:10px 0 12px}
+.peek-img{width:min(220px,60vw);aspect-ratio:1;margin:0 auto;border-radius:12px;background:center/cover;border:2px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.peek-th{display:flex;flex-direction:column;gap:6px;text-align:left}
+.pt{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--soft);border-left:3px solid #6f9a5d;font-family:var(--serif);font-size:19px;font-weight:600}
+.pt.m-adventure{border-left-color:#c08a2e}.pt.m-greatness{border-left-color:#8e5fb0}
 /* scenes */
 .scene-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
@@ -204,6 +221,11 @@ select.in option{background:#1a1f22;color:var(--ink)}
 .outcome{font-size:20px;font-weight:700;margin-top:2px}
 .tsub{color:var(--dim);font-size:14px;margin-top:8px;line-height:1.4}
 
+.tcard.t3d{padding:14px 16px 18px;width:min(560px,92vw);max-width:none}
+.tray{position:relative;height:min(260px,34vh);border-radius:16px;overflow:hidden;margin-bottom:6px;
+ background:radial-gradient(ellipse at 50% 40%,#2f5a43 0,#1d3b2c 70%,#142a20 100%);
+ box-shadow:inset 0 0 0 8px #6b4226,inset 0 0 0 10px #3e2414,inset 0 10px 28px rgba(0,0,0,.6)}
+.tray canvas{position:absolute;inset:0;display:block}
 #snack{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translate(-50%,-10px);z-index:60;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:15px;opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center}
 #snack.show{opacity:1;transform:translate(-50%,0)}
 
@@ -239,6 +261,7 @@ select.in option{background:#1a1f22;color:var(--ink)}
 <div id="snack"></div>
 <div id="modal"></div>
 <input type="file" id="sceneFile" accept="image/*" multiple hidden>
+<input type="file" id="portraitFile" accept="image/*" hidden>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
 <script>
@@ -279,7 +302,7 @@ function normTheme(t){t=t||{};return{might:MIGHT.includes(t.might)?t.might:'Orig
 function normSheet(s){s=s||{};const themes=arr(s.themes,4,normTheme);while(themes.length<4)themes.push(normTheme({power:[{},{}],weakness:[{}]}));
   return{id:str(s.id,40)||uid(),ownerKey:s.ownerKey?str(s.ownerKey,60):null,name:str(s.name,80),promise:int(s.promise,0,5),quintessences:str(s.quintessences,1000),
   relationships:arr(s.relationships,12,r=>({name:str(r&&r.name,60),tag:str(r&&r.tag,120)})),backpack:arr(s.backpack,24,tag),themes,
-  fellowship:normTheme(s.fellowship||{power:[{},{}],weakness:[{}]}),statuses:arr(s.statuses,16,x=>({name:str(x&&x.name,60),tier:int(x&&x.tier,0,6)})),storyTags:arr(s.storyTags,24,tag),notes:str(s.notes,4000)}}
+  fellowship:normTheme(s.fellowship||{power:[{},{}],weakness:[{}]}),portrait:isImg(s.portrait)&&s.portrait.length<400000?s.portrait:'',statuses:arr(s.statuses,16,x=>({name:str(x&&x.name,60),tier:int(x&&x.tier,0,6)})),storyTags:arr(s.storyTags,24,tag),notes:str(s.notes,4000)}}
 const newSheet=()=>normSheet({name:'New hero',relationships:[{}],backpack:[{}],themes:[0,1,2,3].map(()=>({power:[{},{}],weakness:[{}]}))});
 function normSheets(o){const r={};if(o&&typeof o==='object')for(const s of Object.values(o)){const n=normSheet(s);r[n.id]=n}return r}
 function normRoll(r){if(!r||typeof r!=='object')return null;const kinds=['litm','d4','d6','d8','d10','d12','d20','d100'];if(!kinds.includes(r.kind))return null;
@@ -292,13 +315,13 @@ function normState(st){st=st||{};const players={};
   current:st.current?str(st.current,40):null,log:arr(st.log,60,normRoll).filter(Boolean)}}
 
 let S=null;                                        // GM state (saved on the iPad)
-const P={sheets:{},scene:null,players:[],log:[]};  // player view (from the GM)
+const P={sheets:{},scene:null,players:[],log:[],party:[]};  // player view (from the GM)
 let me=null;                                       // player identity
 const view=()=>GM?S:P;
 const myName=()=>GM?'GM':me.name;
 
 let saveT;
-const save=()=>{clearTimeout(saveT);saveT=setTimeout(saveNow,400)};
+const save=()=>{clearTimeout(saveT);saveT=setTimeout(saveNow,400);if(GM)scheduleParty()};
 async function saveNow(){clearTimeout(saveT);try{await idb.set('state',S)}catch(e){snack('Could not save: '+(e&&e.message||e))}}
 
 /* ---------- UI bits ---------- */
@@ -332,7 +355,7 @@ async function showScene(id){S.current=id;save();const sc=S.scenes.find(x=>x.id=
 /* ---------- panels ---------- */
 let panel=null,openSheetId=null,pendingRefresh=false;
 function openPanel(p,arg){
-  if(p==='sheets'&&!GM){const ids=Object.keys(P.sheets);if(ids.length===1&&panel!=='sheet'){p='sheet';arg=ids[0]}}
+  if(p==='sheets'&&!GM){const ids=Object.keys(P.sheets);if(ids.length===1&&!P.party.length&&panel!=='sheet'){p='sheet';arg=ids[0]}}
   panel=p;openSheetId=p==='sheet'?arg:null;renderPanel();$('#dBody').scrollTop=0;$('#drawer').classList.add('open');document.body.classList.add('dopen');markTop()}
 function closePanel(){panel=null;openSheetId=null;$('#drawer').classList.remove('open','full');document.body.classList.remove('dopen');markTop()}
 function renderPanel(){if(!panel)return;let title='',html='';
@@ -355,8 +378,13 @@ function renderSheetList(){const list=Object.values(view().sheets);
   let h=GM?`<button class="btn primary wide" data-act="newsheet">+ New hero</button>`:'';
   if(!list.length)h+=`<p class="empty-note">${GM?'No heroes yet. Create one, then assign it to a player inside the sheet.':'The GM hasn’t given you a hero yet.'}</p>`;
   h+=list.map(s=>{const sub=GM?(s.ownerKey&&S.players[s.ownerKey]?'Played by '+S.players[s.ownerKey].name:'Not assigned'):themeSummary(s);
-    return`<button class="hcard" data-act="opensheet" data-id="${esc(s.id)}"><span class="hname">${esc(s.name||'Unnamed hero')}</span><span class="hsub">${esc(sub)}</span></button>`}).join('');
+    return`<button class="hcard" data-act="opensheet" data-id="${esc(s.id)}">${s.portrait?`<span class="hthumb" style="background-image:url('${s.portrait}')"></span>`:''}<span class="htxt"><span class="hname">${esc(s.name||'Unnamed hero')}</span><span class="hsub">${esc(sub)}</span></span></button>`}).join('');
+  if(!GM&&P.party.length)h+=`<div class="sec">Fellowship</div>`+P.party.map(x=>`<button class="hcard" data-act="peek" data-id="${esc(x.id)}">${x.portrait?`<span class="hthumb" style="background-image:url('${x.portrait}')"></span>`:'<span class="hthumb none">?</span>'}<span class="htxt"><span class="hname">${esc(x.name||'Unnamed hero')}</span><span class="hsub">${esc(x.player)}</span></span></button>`).join('');
   return h}
+function peekHero(id){const x=P.party.find(h=>h.id===id);if(!x)return;
+  modal(`<div class="peek">${x.portrait?`<div class="peek-img" style="background-image:url('${x.portrait}')"></div>`:''}<h3>${esc(x.name||'Unnamed hero')}</h3>
+  <div class="peek-th">${x.themes.map(t=>`<div class="pt m-${t.might.toLowerCase()}"><span>${MICON[t.might]}</span>${esc(t.title||'—')}</div>`).join('')}</div></div>
+  <div class="mbtns"><button class="btn" data-m="cancel">Close</button></div>`)}
 
 function track(path,v,n,numbered){return`<div class="track">${Array.from({length:n},(_,i)=>`<button class="box ${i<v?'on':''}" data-act="track" data-path="${path}" data-n="${i+1}">${numbered?i+1:''}</button>`).join('')}</div>`}
 function tagRowGen(tp,text,bp,burned,kind,ph,del){
@@ -396,8 +424,9 @@ function renderSheet(s){
     ?`<div class="row owner"><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="ib" data-act="delsheet" title="Delete hero">🗑</button></div>${Object.keys(S.players).length?'':'<p class="hint">Players appear here after they open your invite link once.</p>'}`
     :`<div class="pname">${esc(me.name)}</div>`;
   const hero=`<div class="pc herocard"><div class="pch">Hero card</div><div class="pcb">
-    <input class="in hero-name" data-path="name" value="${esc(s.name)}" placeholder="Character name" autocomplete="off">
-    <div class="lbl">Player name</div>${player}
+    <div class="hero-top"><div class="portrait">${s.portrait?`<button class="pimg" data-act="portrait" style="background-image:url('${s.portrait}')" title="Change picture"></button><button class="ib x pdel" data-act="noportrait" title="Remove picture">✕</button>`:`<button class="pimg empty" data-act="portrait" title="Add picture"><span>＋</span>Picture</button>`}</div>
+    <div class="hero-id"><input class="in hero-name" data-path="name" value="${esc(s.name)}" placeholder="Character name" autocomplete="off">
+    <div class="lbl">Player name</div>${player}</div></div>
     <div class="lbl">Fellowship relationships ${addBtn('relationships','rel')}</div>
     ${s.relationships.map((r,j)=>`<div class="row"><input class="in rel-n" data-path="relationships.${j}.name" value="${esc(r.name)}" placeholder="Companion" autocomplete="off"><input class="in" data-path="relationships.${j}.tag" value="${esc(r.tag)}" placeholder="Relationship tag" autocomplete="off"><button class="ib rb power" data-act="roll" data-kind="power" data-tp="relationships.${j}.tag" data-bp="" title="Add to roll">+</button><button class="ib x" data-act="del" data-path="relationships" data-i="${j}" title="Remove">✕</button></div>`).join('')}
     <div class="lbl">Promise</div>${track('promise',s.promise,5)}
@@ -429,11 +458,13 @@ function renderPlayers(){const online=new Set([...conns].map(c=>c._key));const e
   <div class="sec">Players</div>${ents.length?ents.map(([k,v])=>{const n=Object.values(S.sheets).filter(s=>s.ownerKey===k).length;
     return`<div class="prow"><span class="dot ${online.has(k)?'ok':''}"></span><span class="pn">${esc(v.name)}</span><span class="hint">${n?n+(n>1?' heroes':' hero'):'no hero'}</span><button class="ib x" data-act="forget" data-k="${esc(k)}" title="Remove">✕</button></div>`}).join(''):'<p class="hint">No one has joined yet.</p>'}`}
 function renderTable(){return`<div class="card"><div class="lbl">You</div><div class="row"><b style="flex:1;font-size:18px">${esc(me.name)}</b><button class="btn" data-act="renameme">Change name</button></div></div>
+  <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
   <div class="sec">At the table</div>${P.players.length?P.players.map(n=>`<div class="prow"><span class="dot ok"></span><span class="pn">${esc(n)}</span></div>`).join(''):'<p class="hint">Connecting…</p>'}`}
 function renderMenu(){return`
   <div class="mrow"><div class="grow"><b>Export backup</b><small>Save scenes and heroes as a file (e.g. to Files)</small></div><button class="btn" data-act="export">Export</button></div>
   <div class="mrow"><div class="grow"><b>Import backup</b><small>Replaces everything on this device</small></div><button class="btn" data-act="import">Import</button></div>
   <div class="mrow"><div class="grow"><b>Keep screen awake</b><small>Players disconnect if the iPad sleeps</small></div><button class="switch ${wantWake?'on':''}" data-act="wake"></button></div>
+  <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices (this device only)</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
   <div class="mrow"><div class="grow"><b>Clear dice log</b></div><button class="btn" data-act="clearlog">Clear</button></div>
   <div class="mrow"><div class="grow"><b>New invite link</b><small>The old link stops working</small></div><button class="btn" data-act="newlink">Reset</button></div>
   <p class="hint" style="margin-top:16px">Everything is stored on this device. Open the table from the same place every time (the home-screen icon, or the same browser) — they keep separate storage. Export a backup now and then.</p>`}
@@ -477,6 +508,8 @@ function addRoll(r){const v=view();v.log.push(r);if(v.log.length>60)v.log.splice
 function publishRoll(r){addRoll(r);showRoll(r);if(GM){for(const c of conns)send(c,{type:'roll',roll:r})}else if(conn&&conn.open)send(conn,{type:'roll',roll:r});else snack('Not connected — only you saw this roll')}
 let rollT,spinT;
 function showRoll(r){const t=$('#toast');clearTimeout(rollT);clearInterval(spinT);const n=r.kind==='litm'?6:+r.kind.slice(1);
+  if(dice3d&&n===6&&window.THREE){t.innerHTML=`<div class="tcard t3d" data-act="dismiss"><div class="twho">${esc(r.by)}${r.hero?` · <span>${esc(r.hero)}</span>`:''}</div><div class="tray"></div><div class="tres"></div></div>`;
+    t.classList.add('show');if(show3D(r,t.querySelector('.tcard'))){rollT=setTimeout(()=>t.classList.remove('show'),6000);return}}
   t.innerHTML=`<div class="tcard" data-act="dismiss"><div class="twho">${esc(r.by)}${r.hero?` · <span>${esc(r.hero)}</span>`:''}</div><div>${r.dice.map(()=>'<span class="die spin">?</span>').join('')}</div><div class="tres"></div></div>`;
   t.classList.add('show');const dice=[...t.querySelectorAll('.die')];
   spinT=setInterval(()=>dice.forEach(x=>x.textContent=rnd(n)),70);
@@ -485,6 +518,88 @@ function showRoll(r){const t=$('#toast');clearTimeout(rollT);clearInterval(spinT
 function resultHTML(r){if(r.kind!=='litm')return`<div class="tot">${r.total}</div><div class="tsub">${r.kind==='d100'?'d%':r.kind}</div>`;
   return`<div class="tot">${r.total}</div><div class="outcome ${r.outcome}">${OUT[r.outcome]||''}</div><div class="tsub">2d6 ${sign(r.mod)}${r.tags.length?'<br>'+r.tags.map(x=>esc(x.label)+' '+sign(x.value)).join(' · '):''}</div>`}
 function renderFeed(){$('#feed').innerHTML=view().log.slice(-5).map(r=>`<div class="fi"><b>${esc(r.by)}</b>${r.hero?' · '+esc(r.hero):''}<span class="t ${r.outcome}">${r.total}</span><span class="${r.outcome}">${r.kind==='litm'?esc(OUT[r.outcome]||''):(r.kind==='d100'?'d%':r.kind)}</span></div>`).join('')}
+
+/* ---------- 3D acorn dice ---------- */
+let dice3d=ls.get('mist.dice3d',true);
+const THREE_URL='https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+function loadThree(){if(window.THREE)return Promise.resolve(true);if(loadThree.p)return loadThree.p;
+  loadThree.p=new Promise(res=>{const s=document.createElement('script');s.src=THREE_URL;s.onload=()=>res(!!window.THREE);s.onerror=()=>{loadThree.p=null;res(false)};document.head.appendChild(s)});return loadThree.p}
+const FACES=[1,2,3,6,5,4];            // opposite faces add up to 7
+let D3=null;
+function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
+  return()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return(h>>>0)/4294967296}}
+function woodCanvas(w,h,base,numbers){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  g.fillStyle=base;g.fillRect(0,0,w,h);const r=seeded('wood'+w);
+  for(let i=0;i<90;i++){g.strokeStyle=`rgba(${r()<.5?'20,10,5':'120,70,40'},${.08+r()*.12})`;g.lineWidth=1+r()*3;g.beginPath();const y=r()*h;g.moveTo(0,y);
+    for(let x=0;x<=w;x+=w/12)g.lineTo(x,y+Math.sin(x/w*6+i)*h*.03+(r()-.5)*4);g.stroke()}
+  if(numbers){const cw=w/6;g.textAlign='center';g.textBaseline='middle';
+    for(let i=0;i<6;i++){const cx=cw*i+cw/2,cy=h/2;g.font=`700 ${h*.62}px "Cormorant Garamond",Georgia,serif`;
+      g.lineWidth=h*.05;g.strokeStyle='rgba(30,15,5,.9)';g.strokeText(FACES[i],cx,cy);
+      const gr=g.createLinearGradient(0,cy-h*.3,0,cy+h*.3);gr.addColorStop(0,'#ffe29a');gr.addColorStop(.5,'#d9a740');gr.addColorStop(1,'#9c6c1e');
+      g.fillStyle=gr;g.fillText(FACES[i],cx,cy);if(FACES[i]===6)g.fillRect(cx-h*.13,cy+h*.3,h*.26,h*.045);
+      g.fillStyle='rgba(20,10,4,.35)';g.fillRect(cw*i,0,2,h)}}
+  return c}
+function capCanvas(){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle='#3a2212';g.fillRect(0,0,256,256);
+  const s=32;for(let row=0;row<256/s*2+2;row++)for(let col=-1;col<256/s+1;col++){const x=col*s+(row%2?s/2:0),y=row*s/2;
+    const gr=g.createRadialGradient(x-s*.15,y-s*.2,2,x,y,s*.55);gr.addColorStop(0,'#a8683a');gr.addColorStop(.6,'#6b3c1e');gr.addColorStop(1,'#2a160a');
+    g.fillStyle=gr;g.beginPath();g.arc(x,y,s*.52,0,Math.PI*2);g.fill()}
+  return c}
+function makeAcorn(T,mats){const inner=new T.Group();const R=1,L=1.25;
+  const nut=new T.Mesh(new T.CylinderGeometry(R,R,L,6,1,true),mats.faces);inner.add(nut);
+  const tip=new T.Mesh(new T.CylinderGeometry(R,0.12,0.85,6,1,true),mats.wood);tip.position.y=-(L/2+0.425);inner.add(tip);
+  const tipEnd=new T.Mesh(new T.SphereGeometry(0.13,8,6),mats.wood);tipEnd.position.y=-(L/2+0.85);inner.add(tipEnd);
+  const cap=new T.Mesh(new T.SphereGeometry(1.06,28,14,0,Math.PI*2,0,Math.PI/2),mats.cap);cap.scale.set(1,0.78,1);cap.position.y=L/2-0.04;inner.add(cap);
+  const rim=new T.Mesh(new T.CylinderGeometry(1.06,1.0,0.12,28),mats.cap);rim.position.y=L/2-0.06;inner.add(rim);
+  const stem=new T.Mesh(new T.CylinderGeometry(0.1,0.16,0.55,8),mats.stem);stem.position.y=L/2-0.04+0.78*1.06+0.2;stem.rotation.z=0.25;inner.add(stem);
+  inner.traverse(m=>{if(m.isMesh)m.castShadow=true});
+  const outer=new T.Group();outer.rotation.order='YZX';outer.add(inner);outer.userData.inner=inner;return outer}
+function init3D(){if(D3)return D3;const T=window.THREE;if(!T)return null;
+  try{const canvas=document.createElement('canvas');const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
+    if(T.sRGBEncoding)renderer.outputEncoding=T.sRGBEncoding;
+    const scene=new T.Scene();const camera=new T.PerspectiveCamera(32,2,0.1,100);camera.position.set(0,11.5,5);camera.lookAt(0,0,0.3);
+    scene.add(new T.HemisphereLight(0xfff1d6,0x3a2a1a,0.75));
+    const sun=new T.DirectionalLight(0xfff0d0,0.9);sun.position.set(-4,12,5);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+    Object.assign(sun.shadow.camera,{left:-9,right:9,top:6,bottom:-6,near:1,far:30});scene.add(sun);
+    const floor=new T.Mesh(new T.PlaneGeometry(40,30),new T.ShadowMaterial({opacity:.45}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+    const tex=c=>{const t=new T.CanvasTexture(c);if(T.sRGBEncoding)t.encoding=T.sRGBEncoding;t.anisotropy=4;return t};
+    const capT=tex(capCanvas());capT.wrapS=capT.wrapT=T.RepeatWrapping;capT.repeat.set(4,2);
+    const mats={faces:new T.MeshStandardMaterial({map:tex(woodCanvas(1536,320,'#4a2a17',true)),roughness:.55,metalness:.05}),
+      wood:new T.MeshStandardMaterial({map:tex(woodCanvas(512,256,'#43260f',false)),roughness:.6}),
+      cap:new T.MeshStandardMaterial({map:capT,bumpMap:capT,bumpScale:.06,roughness:.75}),
+      stem:new T.MeshStandardMaterial({color:0x5a3418,roughness:.8})};
+    const dice=[makeAcorn(T,mats),makeAcorn(T,mats)];dice.forEach(d=>scene.add(d));
+    D3={T,renderer,canvas,scene,camera,dice,raf:0};return D3}catch(e){console.warn('3D dice off',e);dice3d=false;return null}}
+const APO=Math.cos(Math.PI/6);
+function planRoll(rng,value,endX,endZ,base){
+  const i=FACES.indexOf(value),thc=(i+0.5)*Math.PI/3;
+  const phiEnd=-Math.PI/2-thc;                         // that face points up
+  const psiEnd=Math.PI/2+(rng()-.5)*0.6;               // cap ends up at the top, numbers upright
+  const A=base*Math.PI*2*(1.1+rng()*0.9);              // how far it rolls, and from which side
+  const spin=(rng()-.5)*1.6;
+  return{phiEnd,psiEnd,A,spin,endX,endZ,dur:1300+rng()*600,delay:rng()*140,hop:.5+rng()*.9,sideSlip:(rng()-.5)*1.2}}
+function poseDie(d,p,t){const u=Math.max(0,Math.min(1,t));const e=1-Math.pow(1-u,3);
+  const phi=p.phiEnd-(1-e)*p.A,psi=p.psiEnd-(1-e)*p.spin;
+  const dir=[Math.sin(p.psiEnd),Math.cos(p.psiEnd)],dist=(1-e)*p.A*APO;
+  const x=p.endX-dir[0]*dist+(1-e)*p.sideSlip*dir[1],z=p.endZ-dir[1]*dist-(1-e)*p.sideSlip*dir[0];
+  let delta=((phi-p.phiEnd)%(Math.PI/3)+Math.PI/3)%(Math.PI/3);
+  let y=Math.cos(delta-Math.PI/6);
+  if(u<.45){const k=u/.45;y+=Math.abs(Math.sin(k*Math.PI*2.2))*p.hop*(1-k)}
+  d.position.set(x,y,z);d.rotation.set(0,psi,-Math.PI/2);d.userData.inner.rotation.y=phi}
+function show3D(r,card){const D=init3D();if(!D)return false;
+  const tray=card.querySelector('.tray');const w=tray.clientWidth,h=tray.clientHeight;
+  D.renderer.setSize(w,h,false);D.canvas.style.width=w+'px';D.canvas.style.height=h+'px';D.camera.aspect=w/h;D.camera.updateProjectionMatrix();
+  tray.appendChild(D.canvas);
+  const rng=seeded(r.id);const two=r.dice.length===2;
+  const base=rng()<.5?1:-1;                            // roll in from the left or the right
+  const plans=r.dice.map((v,k)=>planRoll(rng,v,two?(k?1.45:-1.45)+(rng()-.5)*.6:(rng()-.5)*.8,(two?(k?.55:-.55):0)+(rng()-.5)*.8,base));
+  D.dice.forEach((d,k)=>d.visible=k<r.dice.length);
+  cancelAnimationFrame(D.raf);const t0=performance.now();let doneFired=false;
+  const end=Math.max(...plans.map(p=>p.delay+p.dur));
+  const frame=now=>{const el=now-t0;plans.forEach((p,k)=>poseDie(D.dice[k],p,(el-p.delay)/p.dur));D.renderer.render(D.scene,D.camera);
+    if(el>=end&&!doneFired){doneFired=true;const res=card.querySelector('.tres');if(res)res.innerHTML=resultHTML(r)}
+    if(el<end+200)D.raf=requestAnimationFrame(frame)};
+  D.raf=requestAnimationFrame(frame);return true}
 
 /* ---------- networking: GM hosts ---------- */
 let peer=null;const conns=new Set();let hostRetry;
@@ -514,6 +629,11 @@ function onGMData(c,d){if(!d||typeof d!=='object')return;
 function sheetsFor(key){const o={};for(const s of Object.values(S.sheets))if(s.ownerKey===key)o[s.id]=s;return o}
 function presence(){const on=new Set([...conns].map(c=>c._key));return Object.entries(S.players).filter(([k])=>on.has(k)).map(([,v])=>v.name)}
 function broadcastPresence(){const p=presence();for(const c of conns)send(c,{type:'presence',players:p})}
+/* the other heroes at the table: picture, name and the 4 theme titles only */
+let partyT;const partySent=new WeakMap();
+function scheduleParty(){clearTimeout(partyT);partyT=setTimeout(sendParty,700)}
+function sendParty(){const all=Object.values(S.sheets).filter(h=>h.ownerKey&&S.players[h.ownerKey]).map(h=>({id:h.id,owner:h.ownerKey,name:h.name,portrait:h.portrait,player:S.players[h.ownerKey].name,themes:h.themes.map(t=>({title:t.title,might:t.might}))}));
+  for(const c of conns){if(!c._key)continue;const msg=JSON.stringify(all.filter(h=>h.owner!==c._key).map(({owner,...h})=>h));if(partySent.get(c)===msg)continue;partySent.set(c,msg);send(c,{type:'party',party:JSON.parse(msg)})}}
 function pushSheetsTo(key){for(const c of conns)if(c._key===key)send(c,{type:'sheets',sheets:sheetsFor(key)})}
 async function sceneMsg(){const sc=S.scenes.find(x=>x.id===S.current);if(!sc)return{type:'scene',scene:null};let img='';try{img=await idb.get('img:'+sc.id)||''}catch{}
   return{type:'scene',scene:{id:sc.id,name:sc.name,fit:sc.fit,img}}}
@@ -551,6 +671,7 @@ function onPlayerData(d){if(!d||typeof d!=='object')return;
   else if(d.type==='scene'){const sc=d.scene;if(!sc){P.scene=null;setStage(null);return}
     P.scene={id:str(sc.id,40),name:str(sc.name,80),fit:sc.fit==='contain'?'contain':'cover'};setStage(isImg(sc.img)?sc.img:'',P.scene)}
   else if(d.type==='roll'){const r=normRoll(d.roll);if(r){addRoll(r);showRoll(r)}}
+  else if(d.type==='party'){P.party=arr(d.party,30,h=>({id:str(h&&h.id,40),name:str(h&&h.name,80),player:str(h&&h.player,40),portrait:isImg(h&&h.portrait)?h.portrait:'',themes:arr(h&&h.themes,4,t=>({title:str(t&&t.title,120),might:MIGHT.includes(t&&t.might)?t.might:'Origin'}))}));refreshUI('sheets')}
   else if(d.type==='presence'){P.players=arr(d.players,50,x=>str(x,40));refreshUI('players')}}
 
 /* ---------- scenes: images ---------- */
@@ -572,6 +693,13 @@ async function sceneMenu(id){const sc=S.scenes.find(x=>x.id===id);if(!sc)return;
   else if(v==='up'){const i=S.scenes.indexOf(sc);if(i>0){S.scenes.splice(i,1);S.scenes.splice(i-1,0,sc);save();refreshUI('scenes')}}
   else if(v==='del'&&await confirmBox(`Delete scene “${sc.name||'Untitled'}”?`)){S.scenes=S.scenes.filter(x=>x!==sc);idb.del('img:'+id).catch(()=>{});if(S.current===id)showScene(null);save();refreshUI('scenes')}}
 
+let portraitFor=null;
+async function squareImage(file,size){const url=URL.createObjectURL(file);try{const img=new Image();
+  await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Could not read image'));img.src=url});
+  const m=Math.min(img.naturalWidth,img.naturalHeight),c=document.createElement('canvas');c.width=c.height=size;
+  c.getContext('2d').drawImage(img,(img.naturalWidth-m)/2,(img.naturalHeight-m)*0.35,m,m,0,0,size,size);return c.toDataURL('image/jpeg',.85)}finally{URL.revokeObjectURL(url)}}
+$('#portraitFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';const s=portraitFor&&view().sheets[portraitFor];if(!f||!s)return;
+  try{s.portrait=await squareImage(f,320);sheetChanged(s.id);refreshSheet(s.id);if(!editingInside())renderKeep()}catch(err){snack(err.message)}});
 /* ---------- backup ---------- */
 async function exportBackup(){snack('Preparing backup…');const images={};for(const sc of S.scenes){try{images[sc.id]=await idb.get('img:'+sc.id)}catch{}}
   const name=`mist-table-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -607,6 +735,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'panel':panel===el.dataset.p?closePanel():openPanel(el.dataset.p);break;
     case 'close':closePanel();break;
     case 'back':openPanel('sheets');break;
+    case 'peek':peekHero(el.dataset.id);break;
     case 'opensheet':openPanel('sheet',el.dataset.id);break;
     case 'newsheet':{const n=newSheet();S.sheets[n.id]=n;save();openPanel('sheet',n.id);break}
     case 'delsheet':if(s&&await confirmBox(`Delete ${s.name||'this hero'}? This can’t be undone.`)){const o=s.ownerKey;delete S.sheets[s.id];save();if(o)pushSheetsTo(o);openPanel('sheets')}break;
@@ -614,6 +743,8 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'del':if(s){getPath(s,el.dataset.path).splice(+el.dataset.i,1);sheetChanged(s.id);renderKeep()}break;
     case 'might':if(s){setPath(s,el.dataset.path,el.dataset.v);sheetChanged(s.id);renderKeep()}break;
     case 'flip':{const k=el.dataset.k;flipped.delete('was|'+k);if(flipped.has(k)){flipped.delete(k);flipped.add('was|'+k)}else flipped.add(k);renderKeep();setTimeout(()=>flipped.delete('was|'+k),400);break}
+    case 'portrait':if(s){portraitFor=s.id;$('#portraitFile').click()}break;
+    case 'noportrait':if(s){s.portrait='';sheetChanged(s.id);renderKeep()}break;
     case 'burn':if(s){setPath(s,el.dataset.path,!getPath(s,el.dataset.path));sheetChanged(s.id);renderKeep()}break;
     case 'track':if(s){const p=el.dataset.path,n=+el.dataset.n;setPath(s,p,getPath(s,p)===n?n-1:n);sheetChanged(s.id);renderKeep()}break;
     case 'roll':if(s)addToTray(s,el);break;
@@ -635,6 +766,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'export':exportBackup();break;
     case 'import':$('#importFile').click();break;
     case 'wake':wantWake=!wantWake;ls.set('mist.wake',wantWake);if(!wantWake&&wake){wake.release().catch(()=>{});wake=null}else applyWake();renderKeep();break;
+    case 'dice3d':dice3d=!dice3d;ls.set('mist.dice3d',dice3d);if(dice3d)loadThree();renderKeep();break;
     case 'clearlog':S.log=[];save();renderFeed();snack('Dice log cleared');break;
     case 'newlink':if(await confirmBox('Create a new invite link? Everyone will need the new link.','Reset')){S.hostId='mist-'+uid()+uid();await saveNow();for(const c of conns)try{c.close()}catch{}conns.clear();startHost();openPanel('players')}break;
   }});
@@ -649,7 +781,7 @@ async function init(){buildTop();renderTray();
   else{me=ls.get('mist.p.'+JOIN,null);if(!me||!me.key)me={key:uid()+uid(),name:''};
     while(!me.name){const n=await modal(`<h3>Join the table</h3><p>What should everyone call you?</p><input class="in" placeholder="Your name" maxlength="40"><div class="mbtns"><button class="btn primary" data-m="ok">Join</button></div>`,{lock:true});me.name=(n||'').trim().slice(0,40)}
     ls.set('mist.p.'+JOIN,me);startPlayer()}
-  applyWake()}
+  applyWake();if(dice3d)loadThree()}
 init();
 })();
 </script>
