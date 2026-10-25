@@ -164,6 +164,11 @@ select.in option{background:#1a1f22;color:var(--ink)}
 .peek-th{display:flex;flex-direction:column;gap:6px;text-align:left}
 .pt{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--soft);border-left:3px solid #6f9a5d;font-family:var(--serif);font-size:19px;font-weight:600}
 .pt.m-adventure{border-left-color:#c08a2e}.pt.m-greatness{border-left-color:#8e5fb0}
+.hwrap{position:relative}
+.hwrap .hcard{padding-right:52px}
+.hdel{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:1;width:34px;height:34px;border-radius:8px;border:none;background:transparent;font-size:15px;opacity:.35;filter:grayscale(1);padding:0}
+.hdel:hover,.hdel:focus-visible{opacity:1;filter:none;background:rgba(222,131,112,.15)}
+.btn.danger{background:#b4472f;color:#fff;border-color:transparent}
 /* scenes */
 .scene-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
@@ -378,7 +383,7 @@ function renderSheetList(){const list=Object.values(view().sheets);
   let h=GM?`<button class="btn primary wide" data-act="newsheet">+ New hero</button>`:'';
   if(!list.length)h+=`<p class="empty-note">${GM?'No heroes yet. Create one, then assign it to a player inside the sheet.':'The GM hasn’t given you a hero yet.'}</p>`;
   h+=list.map(s=>{const sub=GM?(s.ownerKey&&S.players[s.ownerKey]?'Played by '+S.players[s.ownerKey].name:'Not assigned'):themeSummary(s);
-    return`<button class="hcard" data-act="opensheet" data-id="${esc(s.id)}">${s.portrait?`<span class="hthumb" style="background-image:url('${s.portrait}')"></span>`:''}<span class="htxt"><span class="hname">${esc(s.name||'Unnamed hero')}</span><span class="hsub">${esc(sub)}</span></span></button>`}).join('');
+    return`<div class="hwrap">${GM?`<button class="hdel" data-act="delsheet" data-id="${esc(s.id)}" title="Delete hero" aria-label="Delete hero">🗑</button>`:''}<button class="hcard" data-act="opensheet" data-id="${esc(s.id)}">${s.portrait?`<span class="hthumb" style="background-image:url('${s.portrait}')"></span>`:''}<span class="htxt"><span class="hname">${esc(s.name||'Unnamed hero')}</span><span class="hsub">${esc(sub)}</span></span></button></div>`}).join('');
   if(!GM&&P.party.length)h+=`<div class="sec">Fellowship</div>`+P.party.map(x=>`<button class="hcard" data-act="peek" data-id="${esc(x.id)}">${x.portrait?`<span class="hthumb" style="background-image:url('${x.portrait}')"></span>`:'<span class="hthumb none">?</span>'}<span class="htxt"><span class="hname">${esc(x.name||'Unnamed hero')}</span><span class="hsub">${esc(x.player)}</span></span></button>`).join('');
   return h}
 function peekHero(id){const x=P.party.find(h=>h.id===id);if(!x)return;
@@ -421,7 +426,7 @@ function themeCard(t,b,fellow){
 
 function renderSheet(s){
   const player=GM
-    ?`<div class="row owner"><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="ib" data-act="delsheet" title="Delete hero">🗑</button></div>${Object.keys(S.players).length?'':'<p class="hint">Players appear here after they open your invite link once.</p>'}`
+    ?`<div class="row owner"><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select></div>${Object.keys(S.players).length?'':'<p class="hint">Players appear here after they open your invite link once.</p>'}`
     :`<div class="pname">${esc(me.name)}</div>`;
   const hero=`<div class="pc herocard"><div class="pch">Hero card</div><div class="pcb">
     <div class="hero-top"><div class="portrait">${s.portrait?`<button class="pimg" data-act="portrait" style="background-image:url('${s.portrait}')" title="Change picture"></button><button class="ib x pdel" data-act="noportrait" title="Remove picture">✕</button>`:`<button class="pimg empty" data-act="portrait" title="Add picture"><span>＋</span>Picture</button>`}</div>
@@ -459,12 +464,14 @@ function renderPlayers(){const online=new Set([...conns].map(c=>c._key));const e
     return`<div class="prow"><span class="dot ${online.has(k)?'ok':''}"></span><span class="pn">${esc(v.name)}</span><span class="hint">${n?n+(n>1?' heroes':' hero'):'no hero'}</span><button class="ib x" data-act="forget" data-k="${esc(k)}" title="Remove">✕</button></div>`}).join(''):'<p class="hint">No one has joined yet.</p>'}`}
 function renderTable(){return`<div class="card"><div class="lbl">You</div><div class="row"><b style="flex:1;font-size:18px">${esc(me.name)}</b><button class="btn" data-act="renameme">Change name</button></div></div>
   <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
+  <div class="mrow"><div class="grow"><b>Dice sound</b><small>This device only</small></div><button class="switch ${diceSound?'on':''}" data-act="dsound"></button></div>
   <div class="sec">At the table</div>${P.players.length?P.players.map(n=>`<div class="prow"><span class="dot ok"></span><span class="pn">${esc(n)}</span></div>`).join(''):'<p class="hint">Connecting…</p>'}`}
 function renderMenu(){return`
   <div class="mrow"><div class="grow"><b>Export backup</b><small>Save scenes and heroes as a file (e.g. to Files)</small></div><button class="btn" data-act="export">Export</button></div>
   <div class="mrow"><div class="grow"><b>Import backup</b><small>Replaces everything on this device</small></div><button class="btn" data-act="import">Import</button></div>
   <div class="mrow"><div class="grow"><b>Keep screen awake</b><small>Players disconnect if the iPad sleeps</small></div><button class="switch ${wantWake?'on':''}" data-act="wake"></button></div>
   <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices (this device only)</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
+  <div class="mrow"><div class="grow"><b>Dice sound</b><small>This device only</small></div><button class="switch ${diceSound?'on':''}" data-act="dsound"></button></div>
   <div class="mrow"><div class="grow"><b>Clear dice log</b></div><button class="btn" data-act="clearlog">Clear</button></div>
   <div class="mrow"><div class="grow"><b>New invite link</b><small>The old link stops working</small></div><button class="btn" data-act="newlink">Reset</button></div>
   <p class="hint" style="margin-top:16px">Everything is stored on this device. Open the table from the same place every time (the home-screen icon, or the same browser) — they keep separate storage. Export a backup now and then.</p>`}
@@ -511,7 +518,7 @@ function showRoll(r){const t=$('#toast');clearTimeout(rollT);clearInterval(spinT
   if(dice3d&&n===6&&window.THREE){t.innerHTML=`<div class="tcard t3d" data-act="dismiss"><div class="twho">${esc(r.by)}${r.hero?` · <span>${esc(r.hero)}</span>`:''}</div><div class="tray"></div><div class="tres"></div></div>`;
     t.classList.add('show');if(show3D(r,t.querySelector('.tcard'))){rollT=setTimeout(()=>t.classList.remove('show'),6000);return}}
   t.innerHTML=`<div class="tcard" data-act="dismiss"><div class="twho">${esc(r.by)}${r.hero?` · <span>${esc(r.hero)}</span>`:''}</div><div>${r.dice.map(()=>'<span class="die spin">?</span>').join('')}</div><div class="tres"></div></div>`;
-  t.classList.add('show');const dice=[...t.querySelectorAll('.die')];
+  t.classList.add('show');const dice=[...t.querySelectorAll('.die')];playSimpleSound();
   spinT=setInterval(()=>dice.forEach(x=>x.textContent=rnd(n)),70);
   setTimeout(()=>{clearInterval(spinT);dice.forEach((x,i)=>{x.textContent=r.dice[i];x.classList.remove('spin')});const res=t.querySelector('.tres');if(res)res.innerHTML=resultHTML(r)},700);
   rollT=setTimeout(()=>t.classList.remove('show'),4800)}
@@ -596,11 +603,32 @@ function show3D(r,card){const D=init3D();if(!D)return false;
   D.dice.forEach((d,k)=>d.visible=k<r.dice.length);
   cancelAnimationFrame(D.raf);const t0=performance.now();let doneFired=false;
   const end=Math.max(...plans.map(p=>p.delay+p.dur));
+  playRollSound(plans);
   const frame=now=>{const el=now-t0;plans.forEach((p,k)=>poseDie(D.dice[k],p,(el-p.delay)/p.dur));D.renderer.render(D.scene,D.camera);
     if(el>=end&&!doneFired){doneFired=true;const res=card.querySelector('.tres');if(res)res.innerHTML=resultHTML(r)}
     if(el<end+200)D.raf=requestAnimationFrame(frame)};
-  D.raf=requestAnimationFrame(frame);return true}
+  D.raf=requestAnimationFrame(frame);
+  setTimeout(()=>{if(doneFired)return;doneFired=true;plans.forEach((p,k)=>poseDie(D.dice[k],p,1));try{D.renderer.render(D.scene,D.camera)}catch{}const res=card.querySelector('.tres');if(res)res.innerHTML=resultHTML(r)},end+250);
+  return true}
 
+/* ---------- dice sound (made in the browser, no files) ---------- */
+let diceSound=ls.get('mist.dsound',true),AC=null,AOUT=null,NOISE=null;
+function audio(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3800;const g=AC.createGain();g.gain.value=.8;lp.connect(g);g.connect(AC.destination);AOUT=lp;
+    NOISE=AC.createBuffer(1,AC.sampleRate*.1,AC.sampleRate);const d=NOISE.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+  if(AC.state==='suspended')AC.resume().catch(()=>{});return AC}catch{return null}}
+document.addEventListener('pointerdown',()=>{if(diceSound)audio()},{passive:true});
+function knock(t,v,f){const a=AC;
+  const o=a.createOscillator(),og=a.createGain();o.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.82,t+.06);
+  og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(v*.5,t+.002);og.gain.exponentialRampToValueAtTime(.0005,t+.08);o.connect(og);og.connect(AOUT);o.start(t);o.stop(t+.1);
+  const o2=a.createOscillator(),g2=a.createGain();o2.type='sine';o2.frequency.value=f*2.4;g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(v*.18,t+.001);g2.gain.exponentialRampToValueAtTime(.0005,t+.035);o2.connect(g2);g2.connect(AOUT);o2.start(t);o2.stop(t+.05);
+  const n=a.createBufferSource(),bp=a.createBiquadFilter(),ng=a.createGain();n.buffer=NOISE;bp.type='bandpass';bp.frequency.value=1800+Math.random()*900;bp.Q.value=1.3;
+  ng.gain.setValueAtTime(v*.55,t);ng.gain.exponentialRampToValueAtTime(.0005,t+.03);n.connect(bp);bp.connect(ng);ng.connect(AOUT);n.start(t);n.stop(t+.05)}
+function playRollSound(plans){if(!diceSound)return;const a=audio();if(!a||a.state!=='running')return;const t0=a.currentTime+.03;
+  for(const p of plans){const f0=620+Math.random()*260;const at=(u,v)=>knock(t0+(p.delay+u*p.dur)/1000,v,f0*(.94+Math.random()*.12));
+    at(0,.9);at(.45/2.2,.6);at(.9/2.2,.4);
+    const A=Math.abs(p.A),step=Math.PI/3;for(let m=1;m*step<A;m++){const u=1-Math.cbrt(1-m*step/A);if(u<.06)continue;at(u,.12+.45*Math.pow(1-u,2))}at(.82,.1)}}
+function playSimpleSound(){playRollSound([{delay:0,dur:700,A:Math.PI*2}])}
 /* ---------- networking: GM hosts ---------- */
 let peer=null;const conns=new Set();let hostRetry;
 function send(c,m){try{if(c&&c.open)c.send(m)}catch(e){console.warn(e)}}
@@ -738,7 +766,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'peek':peekHero(el.dataset.id);break;
     case 'opensheet':openPanel('sheet',el.dataset.id);break;
     case 'newsheet':{const n=newSheet();S.sheets[n.id]=n;save();openPanel('sheet',n.id);break}
-    case 'delsheet':if(s&&await confirmBox(`Delete ${s.name||'this hero'}? This can’t be undone.`)){const o=s.ownerKey;delete S.sheets[s.id];save();if(o)pushSheetsTo(o);openPanel('sheets')}break;
+    case 'delsheet':{const h=S.sheets[el.dataset.id];if(h)deleteHero(h);break}
     case 'add':if(s){const tpl={tag:{text:'',burned:false},weak:{text:''},rel:{name:'',tag:''},status:{name:'',tier:1}}[el.dataset.tpl];getPath(s,el.dataset.path).push(tpl);sheetChanged(s.id);renderKeep()}break;
     case 'del':if(s){getPath(s,el.dataset.path).splice(+el.dataset.i,1);sheetChanged(s.id);renderKeep()}break;
     case 'might':if(s){setPath(s,el.dataset.path,el.dataset.v);sheetChanged(s.id);renderKeep()}break;
@@ -766,10 +794,16 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'export':exportBackup();break;
     case 'import':$('#importFile').click();break;
     case 'wake':wantWake=!wantWake;ls.set('mist.wake',wantWake);if(!wantWake&&wake){wake.release().catch(()=>{});wake=null}else applyWake();renderKeep();break;
+    case 'dsound':diceSound=!diceSound;ls.set('mist.dsound',diceSound);if(diceSound){audio();setTimeout(playSimpleSound,80)}renderKeep();break;
     case 'dice3d':dice3d=!dice3d;ls.set('mist.dice3d',dice3d);if(dice3d)loadThree();renderKeep();break;
     case 'clearlog':S.log=[];save();renderFeed();snack('Dice log cleared');break;
     case 'newlink':if(await confirmBox('Create a new invite link? Everyone will need the new link.','Reset')){S.hostId='mist-'+uid()+uid();await saveNow();for(const c of conns)try{c.close()}catch{}conns.clear();startHost();openPanel('players')}break;
   }});
+async function deleteHero(s){const name=s.name||'this hero';
+  const p=modal(`<h3>Delete hero?</h3><p>This permanently deletes <b>${esc(name)}</b> and everything on the sheet. It can’t be undone${s.ownerKey&&S.players[s.ownerKey]?`, and ${esc(S.players[s.ownerKey].name)} loses access to it`:''}.</p><p>Type <b>delete</b> to confirm.</p><input class="in" placeholder="delete" autocomplete="off" autocapitalize="off"><div class="mbtns"><button class="btn" data-m="cancel">Cancel</button><button class="btn danger" data-m="ok" disabled>Delete forever</button></div>`);
+  const inp=$('#modal input'),ok=$('#modal [data-m=ok]');inp.addEventListener('input',()=>{ok.disabled=inp.value.trim().toLowerCase()!=='delete'});
+  const v=await p;if(v==null)return;if(String(v).trim().toLowerCase()!=='delete'){snack('Not deleted — type “delete” to confirm');return}
+  const o=s.ownerKey;delete S.sheets[s.id];await saveNow();if(o)pushSheetsTo(o);scheduleParty();openPanel('sheets');snack(name+' deleted')}
 async function copyLink(){const l=inviteLink();try{await navigator.clipboard.writeText(l);snack('Link copied')}catch{await ask('Copy this link',l)}}
 
 /* ---------- start ---------- */
