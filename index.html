@@ -184,6 +184,9 @@ select.in option{background:#1a1f22;color:var(--ink)}
 #showChip{flex:none}
 @media (max-width:560px){#showChip{max-width:40vw;overflow:hidden;text-overflow:ellipsis}}
 #dShow{min-height:36px;padding:6px 12px;font-size:14px}
+.btn.save{border-color:var(--gold);color:var(--gold2)}
+.btn.warnchip{border-color:var(--rust);color:#ffd3c8}
+.mrow .btn+.btn{margin-left:6px}
 /* scenes */
 .scene-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
@@ -343,7 +346,7 @@ const myName=()=>GM?'GM':me.name;
 
 let saveT;
 const save=()=>{clearTimeout(saveT);saveT=setTimeout(saveNow,400);if(GM){scheduleParty();if(showcaseId)scheduleShowcase()}};
-async function saveNow(){clearTimeout(saveT);try{await idb.set('state',S)}catch(e){snack('Could not save: '+(e&&e.message||e))}}
+async function saveNow(){clearTimeout(saveT);try{await idb.set('state',S);if(S)bkDirty=true}catch(e){snack('Could not save: '+(e&&e.message||e))}}
 
 /* ---------- UI bits ---------- */
 let snackT;
@@ -358,7 +361,7 @@ const confirmBox=(t,ok='Delete')=>modal(`<p>${esc(t)}</p><div class="mbtns"><but
 
 function buildTop(){
   $('#tb').innerHTML=GM
-    ?`<button class="btn" data-act="panel" data-p="sheets">Heroes</button><button class="btn" data-act="panel" data-p="scenes">Scenes</button><button class="btn" data-act="panel" data-p="players">Players</button><button class="btn" data-act="panel" data-p="menu" aria-label="More">⋯</button>`
+    ?`<button class="btn" data-act="panel" data-p="sheets">Heroes</button><button class="btn" data-act="panel" data-p="scenes">Scenes</button><button class="btn" data-act="panel" data-p="players">Players</button><button class="btn warnchip" id="bkChip" data-act="bkresume" hidden title="Allow saving to your backup file">⚠ Resume auto-backup</button><button class="btn save" data-act="saveexit" title="Save a backup and end the session">💾 Save &amp; Exit</button><button class="btn" data-act="panel" data-p="menu" aria-label="More">⋯</button>`
     :`<button class="btn" data-act="panel" data-p="sheets">My hero</button><button class="btn" data-act="panel" data-p="players">Table</button>`;
   $('#emptySub').textContent=GM?'Add a scene, then tap it to show it to everyone.':'Waiting for the GM to set the scene…';
 }
@@ -484,7 +487,13 @@ function renderTable(){return`<div class="card"><div class="lbl">You</div><div c
   <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
   <div class="mrow"><div class="grow"><b>Dice sound</b><small>This device only</small></div><button class="switch ${diceSound?'on':''}" data-act="dsound"></button></div>
   <div class="sec">At the table</div>${P.players.length?P.players.map(n=>`<div class="prow"><span class="dot ok"></span><span class="pn">${esc(n)}</span></div>`).join(''):'<p class="hint">Connecting…</p>'}`}
-function renderMenu(){return`
+function renderMenu(){
+  let bk;if(!FS_OK)bk=`<div class="mrow"><div class="grow"><b>Auto-backup to a file</b><small>This browser can’t keep writing to one file (Firefox, Safari). Your table is still saved automatically inside the browser, and <b>Save &amp; Exit</b> downloads a dated backup file each time.</small></div></div>`;
+  else if(!bkHandle)bk=`<div class="mrow"><div class="grow"><b>Auto-backup to a file</b><small>Off. Pick a file (e.g. in Documents) and the table overwrites it every 5 minutes while something changed.</small></div><button class="btn primary" data-act="bkchoose">Choose file…</button></div>`;
+  else if(bkPerm!=='granted')bk=`<div class="mrow"><div class="grow"><b>Auto-backup to a file</b><small>Paused — the browser needs your OK to keep writing to <b>${esc(bkHandle.name)}</b>.</small></div><button class="btn primary" data-act="bkresume">Resume</button></div>`;
+  else bk=`<div class="mrow"><div class="grow"><b>Auto-backup to a file</b><small>On — every 5 minutes to <b>${esc(bkHandle.name)}</b> · last saved ${hhmm(bkLast)}</small></div><button class="btn" data-act="bknow">Save now</button></div>
+  <div class="mrow"><div class="grow"><small>Use a different file, or stop</small></div><button class="btn" data-act="bkchoose">Change file…</button><button class="btn" data-act="bkstop">Stop</button></div>`;
+  return bk+`
   <div class="mrow"><div class="grow"><b>Export backup</b><small>Save scenes and heroes as a file (e.g. to Files)</small></div><button class="btn" data-act="export">Export</button></div>
   <div class="mrow"><div class="grow"><b>Import backup</b><small>Replaces everything on this device</small></div><button class="btn" data-act="import">Import</button></div>
   <div class="mrow"><div class="grow"><b>Keep screen awake</b><small>Players disconnect if the iPad sleeps</small></div><button class="switch ${wantWake?'on':''}" data-act="wake"></button></div>
@@ -715,6 +724,7 @@ function onPlayerData(d){if(!d||typeof d!=='object')return;
     if(d.type==='welcome'){onShowcase(d.showcase||null);P.log=arr(d.log,20,normRoll).filter(Boolean);P.players=arr(d.players,50,x=>str(x,40));renderFeed();refreshUI('players')}
     if(panel==='sheet'&&!P.sheets[openSheetId])openPanel('sheets');else refreshSheet(openSheetId)}
   else if(d.type==='showcase')onShowcase(d.sheet);
+  else if(d.type==='bye'){setNet('warn','The GM ended the session');snack('The GM saved and ended the session')}
   else if(d.type==='scene'){const sc=d.scene;if(!sc){P.scene=null;setStage(null);return}
     P.scene={id:str(sc.id,40),name:str(sc.name,80),fit:sc.fit==='contain'?'contain':'cover'};setStage(isImg(sc.img)?sc.img:'',P.scene)}
   else if(d.type==='roll'){const r=normRoll(d.roll);if(r){addRoll(r);showRoll(r)}}
@@ -748,11 +758,43 @@ async function squareImage(file,size){const url=URL.createObjectURL(file);try{co
 $('#portraitFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';const s=portraitFor&&view().sheets[portraitFor];if(!f||!s)return;
   try{s.portrait=await squareImage(f,320);sheetChanged(s.id);refreshSheet(s.id);if(!editingInside())renderKeep()}catch(err){snack(err.message)}});
 /* ---------- backup ---------- */
-async function exportBackup(){snack('Preparing backup…');const images={};for(const sc of S.scenes){try{images[sc.id]=await idb.get('img:'+sc.id)}catch{}}
-  const name=`mist-table-backup-${new Date().toISOString().slice(0,10)}.json`;
-  const blob=new Blob([JSON.stringify({app:'mist-table',v:1,exported:new Date().toISOString(),state:S,images})],{type:'application/json'});
-  try{const file=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000)}
+async function buildBackupBlob(){const images={};for(const sc of S.scenes){try{images[sc.id]=await idb.get('img:'+sc.id)}catch{}}
+  return new Blob([JSON.stringify({app:'mist-table',v:1,exported:new Date().toISOString(),state:S,images})],{type:'application/json'})}
+async function exportBackup(){snack('Preparing backup…');await saveNow();
+  const d=new Date(),pad=n=>String(n).padStart(2,'0');const name=`mist-table-backup-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;const blob=await buildBackupBlob();
+  try{const file=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[file]})&&/iPad|iPhone|iPod|Android/i.test(navigator.userAgent+(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform)?' iPad':''))){await navigator.share({files:[file],title:name});bkDirty=false;return true}}catch(e){if(e&&e.name==='AbortError')return false}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000);bkDirty=false;return true}
+
+/* ---------- auto-backup to one file on this computer (Edge / Chrome) ---------- */
+const FS_OK=typeof window.showSaveFilePicker==='function';
+let bkHandle=null,bkPerm='none',bkDirty=false,bkLast=0,bkBusy=false,exited=false;
+const hhmm=t=>t?new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'never';
+async function bkInit(){if(!GM||!FS_OK)return;try{bkHandle=(await idb.get('bkHandle'))||null}catch{}
+  if(bkHandle){try{bkPerm=await bkHandle.queryPermission({mode:'readwrite'})}catch{bkPerm='prompt'}}
+  bkLast=ls.get('mist.bkLast',0);updateSaveUI();if(bkPerm==='granted')bkWrite(true)}
+async function bkChoose(){try{const h=await window.showSaveFilePicker({suggestedName:'mist-table-autosave.json',types:[{description:'Mist Table backup',accept:{'application/json':['.json']}}]});
+    bkHandle=h;await idb.set('bkHandle',h);bkPerm='granted';if(await bkWrite(true))snack('Auto-backup on: '+h.name)}
+  catch(e){if(e&&e.name!=='AbortError')snack('Could not set up the backup file: '+(e.message||e))}refreshUI('menu')}
+async function bkResume(){if(!bkHandle)return;try{bkPerm=await bkHandle.requestPermission({mode:'readwrite'})}catch{bkPerm='prompt'}
+  if(bkPerm==='granted'){await bkWrite(true);snack('Auto-backup resumed')}updateSaveUI()}
+async function bkStop(){bkHandle=null;bkPerm='none';try{await idb.del('bkHandle')}catch{}updateSaveUI();snack('Auto-backup off')}
+async function bkWrite(force){if(!bkHandle||bkPerm!=='granted'||bkBusy)return false;if(!force&&!bkDirty)return true;bkBusy=true;
+  try{await saveNow();bkDirty=false;const blob=await buildBackupBlob();const w=await bkHandle.createWritable();await w.write(blob);await w.close();bkLast=Date.now();ls.set('mist.bkLast',bkLast);return true}
+  catch(e){bkDirty=true;console.warn('auto-backup',e);if(e&&e.name==='NotAllowedError')bkPerm='prompt';else snack('Auto-backup failed: '+(e&&e.message||e));return false}
+  finally{bkBusy=false;updateSaveUI()}}
+setInterval(()=>{if(GM&&!exited)bkWrite(false)},5*60*1000);
+function updateSaveUI(){const c=$('#bkChip');if(c){const paused=GM&&bkHandle&&bkPerm!=='granted';c.hidden=!paused}refreshUI('menu')}
+addEventListener('beforeunload',e=>{if(GM&&bkDirty&&!exited){e.preventDefault();e.returnValue=''}});
+async function saveExit(){let ok=false,where='';
+  if(bkHandle&&bkPerm!=='granted'){try{bkPerm=await bkHandle.requestPermission({mode:'readwrite'})}catch{}}
+  snack('Saving…');
+  if(bkHandle&&bkPerm==='granted'){ok=await bkWrite(true);if(ok)where=`your auto-backup file <b>${esc(bkHandle.name)}</b>`}
+  if(!ok){ok=await exportBackup();if(ok)where='a backup file (usually in your <b>Downloads</b> folder)'}
+  if(!ok)return;
+  exited=true;clearTimeout(hostRetry);for(const c of conns){send(c,{type:'bye'});setTimeout(()=>{try{c.close()}catch{}},300)}conns.clear();
+  setTimeout(()=>{try{peer&&peer.destroy()}catch{}},400);setNet('bad','Session ended');closePanel();
+  const v=await modal(`<h3>Session saved</h3><p>Everything is saved on this computer and in ${where} at ${hhmm(Date.now())}.</p><p>Players have been disconnected. <b>You can close this window now.</b></p>${!bkHandle&&FS_OK?'<p class="hint">Tip: turn on <b>Auto-backup to a file</b> in the ⋯ menu, so a backup is also kept every 5 minutes.</p>':''}<div class="mbtns"><button class="btn primary" data-m="resume">Resume session</button></div>`,{lock:true});
+  if(v==='resume'){exited=false;startHost();snack('Table open again')}}
 $('#importFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const data=JSON.parse(await f.text());if(!data||data.app!=='mist-table')throw new Error('Not a Mist Table backup');
     if(!await confirmBox('Replace everything on this device with this backup?','Replace'))return;
@@ -769,7 +811,7 @@ async function applyWake(){if(!wantWake||wake||!('wakeLock' in navigator)||docum
   try{wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null})}catch{}}
 document.addEventListener('pointerdown',applyWake,{passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;applyWake();
-  if(GM){if(!peer||peer.destroyed)startHost();else if(peer.disconnected)try{peer.reconnect()}catch{startHost()}}
+  if(GM){if(exited)return;if(!peer||peer.destroyed)startHost();else if(peer.disconnected)try{peer.reconnect()}catch{startHost()}}
   else if(me&&me.name)schedulePlayer(300)});
 
 /* ---------- clicks ---------- */
@@ -814,6 +856,11 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'forget':{const k=el.dataset.k,p=S.players[k];if(p&&await confirmBox(`Remove ${p.name}? Their heroes become unassigned.`,'Remove')){delete S.players[k];for(const sh of Object.values(S.sheets))if(sh.ownerKey===k)sh.ownerKey=null;for(const c of [...conns])if(c._key===k){try{c.close()}catch{}conns.delete(c)}save();broadcastPresence();renderKeep()}break}
     case 'switchme':ss.del('mist.cur.'+JOIN);ss.set('mist.pick.'+JOIN,'1');if(me)ls.set(aliveKey(me.key),0);location.reload();break;
     case 'renameme':{const n=await ask('Your name',me.name);if(n&&n.trim()){me.name=n.trim().slice(0,40);saveMe();if(conn&&conn.open)send(conn,{type:'name',name:me.name});renderKeep()}break}
+    case 'saveexit':saveExit();break;
+    case 'bkchoose':bkChoose();break;
+    case 'bkresume':bkResume();break;
+    case 'bkstop':bkStop();break;
+    case 'bknow':bkWrite(true).then(ok=>ok&&snack('Saved to '+bkHandle.name));break;
     case 'export':exportBackup();break;
     case 'import':$('#importFile').click();break;
     case 'wake':wantWake=!wantWake;ls.set('mist.wake',wantWake);if(!wantWake&&wake){wake.release().catch(()=>{});wake=null}else applyWake();renderKeep();break;
@@ -871,7 +918,7 @@ async function init(){buildTop();renderTray();
   if(GM){let st=null;try{st=await idb.get('state')}catch(e){console.warn(e)}S=normState(st);if(!st)await saveNow();
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
     renderFeed();const sc=S.scenes.find(x=>x.id===S.current);if(sc){let img='';try{img=await idb.get('img:'+sc.id)||''}catch{}setStage(img,sc)}
-    startHost()}
+    startHost();bkInit();bkDirty=false}
   else{me=await pickIdentity();startPlayer()}
   applyWake();if(dice3d)loadThree()}
 init();
