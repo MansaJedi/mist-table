@@ -94,6 +94,59 @@ select.in option{background:#1a1f22;color:var(--ink)}
 .hint{color:var(--dim);font-size:14px;line-height:1.4;margin:6px 0}
 .empty-note{color:var(--dim);text-align:center;padding:24px 8px;line-height:1.45}
 
+
+/* parchment cards (sheet) */
+.sheet{--pa:#efe5cf;--pink:#3b2a1d;--phd:#8b5e3c;--pln:rgba(80,52,28,.28);--pdim:#7a5a3e}
+.sg{display:grid;gap:12px;margin-bottom:12px;grid-template-columns:minmax(0,1fr)}
+.pc{background:var(--pa);color:var(--pink);border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.35);border:1px solid #6d4a2d}
+.pch{background:var(--phd);color:#f8eedb;font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:6px 8px}
+.pc.fellow .pch{background:#6f5f50}
+.pc.m-origin{border-top:3px solid #6f9a5d}.pc.m-adventure{border-top:3px solid #c08a2e}.pc.m-greatness{border-top:3px solid #8e5fb0}
+.pcb{padding:6px 10px 10px}
+.mights{display:flex;justify-content:center;gap:4px;background:#d9c6a3;padding:3px}
+.mt{border:none;background:transparent;border-radius:6px;padding:3px 8px;font-size:14px;opacity:.45;color:var(--pink);display:flex;align-items:center;gap:4px}
+.mt span{font-size:12px;font-weight:600}
+.mt.on{opacity:1;background:rgba(255,255,255,.55)}
+.pc .in{background:transparent;border:none;border-bottom:1px solid var(--pln);border-radius:0;padding:4px 2px;min-height:32px;font-size:15px;color:var(--pink)}
+.pc .in::placeholder{color:rgba(59,42,29,.38)}
+.pc .in:focus{border-bottom-color:var(--phd);background:rgba(255,255,255,.35)}
+.pc textarea.in{border:1px solid var(--pln);border-radius:6px;background:rgba(255,255,255,.25);padding:6px 8px}
+.pc select.in{background-color:transparent}
+.pc .in.type{font-size:13px;min-height:26px;color:var(--pdim)}
+.pc .hero-name{font-family:var(--serif);font-size:28px;font-weight:700;text-align:center;margin:2px 0 4px;border-bottom:1px solid var(--pln)}
+.pc .ttl .in{font-family:var(--serif);font-size:19px;font-weight:700}
+.pc .lbl{color:var(--pdim);font-family:var(--serif);font-size:13px;letter-spacing:.1em;margin:10px 0 2px;padding:2px 0;border-bottom:1px solid rgba(80,52,28,.15)}
+.pc .add{color:#8b3a2a}
+.pc .row{gap:2px;margin-bottom:0}
+.pc .ib{width:28px;height:28px;border:none;background:transparent;color:var(--pdim);font-size:13px;border-radius:6px}
+.pc .ib:hover{background:rgba(0,0,0,.06)}
+.pc .ib.burn{opacity:.3;filter:grayscale(1)}.pc .ib.burn.on{opacity:1;filter:none;background:rgba(201,119,47,.25)}
+.pc .ib.rb{color:#2f6b3a;font-size:18px}.pc .ib.rb.weak{color:#a8432e}
+.pc .ib.x{font-size:11px}
+@media (hover:hover){.pc .row .ib.x{opacity:0}.pc .row:hover .ib.x,.pc .row:focus-within .ib.x{opacity:1}}
+.pc .box{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--pdim);color:var(--pink);font-size:11px}
+.pc .box.on{background:var(--pdim);color:#f8eedb}
+.pc .track{gap:4px}
+.pc .tracks{display:flex;justify-content:space-between;gap:6px;margin-top:10px;text-align:center}
+.pc .tracks .track{justify-content:center;flex-wrap:nowrap}
+.pc .tl{font-family:var(--serif);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pdim);margin-top:2px}
+.pc .hint{color:var(--pdim)}
+.pc .status{border-bottom-color:var(--pln)}
+.pc .pname{font-size:16px;padding:4px 2px}
+.pc .owner .ib{flex:none}
+.flip{display:block;width:100%;margin-top:10px;border:1px solid var(--pln);background:#d9c6a3;color:var(--pink);border-radius:6px;padding:7px;font-family:var(--serif);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.flip:hover{background:#cfb990}
+.pc.back{background:#e8dcc2}
+.pc .bt{font-family:var(--serif);font-size:17px;font-weight:700;margin:4px 0 6px;min-height:4px}
+.pc textarea.si{min-height:260px}
+.flipin{animation:flipin .35s ease}
+@keyframes flipin{from{transform:perspective(900px) rotateY(80deg);opacity:.3}to{transform:none;opacity:1}}
+#drawer.full{width:100vw;border-left:none;background:rgba(20,16,13,.97)}
+#drawer.full #dBody{padding:12px 12px calc(96px + env(safe-area-inset-bottom))}
+#drawer.full .sheet{max-width:1800px;margin:0 auto}
+#drawer.full .sg{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+@media (max-height:500px){#drawer.full .sg{gap:8px}#drawer.full .pcb{padding:4px 6px 8px}#drawer.full .pc .in{font-size:14px;min-height:28px}#drawer.full .pc .ib{width:24px;height:24px}#drawer.full .mt span{display:none}#drawer.full .dh{padding:6px 10px}#drawer.full .dh h2{font-size:20px}#drawer.full .pc .box{width:17px;height:17px}#drawer.full .pc .track{gap:2px}#drawer.full .pc .tl{font-size:9px;letter-spacing:.02em}#drawer.full .pc .lbl{font-size:11px}#drawer.full .flip{font-size:11px;padding:5px}#drawer.full .pch{font-size:13px;padding:4px}}
+
 /* scenes */
 .scene-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
@@ -226,7 +279,7 @@ function normTheme(t){t=t||{};return{might:MIGHT.includes(t.might)?t.might:'Orig
 function normSheet(s){s=s||{};const themes=arr(s.themes,4,normTheme);while(themes.length<4)themes.push(normTheme({power:[{},{}],weakness:[{}]}));
   return{id:str(s.id,40)||uid(),ownerKey:s.ownerKey?str(s.ownerKey,60):null,name:str(s.name,80),promise:int(s.promise,0,5),quintessences:str(s.quintessences,1000),
   relationships:arr(s.relationships,12,r=>({name:str(r&&r.name,60),tag:str(r&&r.tag,120)})),backpack:arr(s.backpack,24,tag),themes,
-  statuses:arr(s.statuses,16,x=>({name:str(x&&x.name,60),tier:int(x&&x.tier,0,6)})),storyTags:arr(s.storyTags,24,tag),notes:str(s.notes,4000)}}
+  fellowship:normTheme(s.fellowship||{power:[{},{}],weakness:[{}]}),statuses:arr(s.statuses,16,x=>({name:str(x&&x.name,60),tier:int(x&&x.tier,0,6)})),storyTags:arr(s.storyTags,24,tag),notes:str(s.notes,4000)}}
 const newSheet=()=>normSheet({name:'New hero',relationships:[{}],backpack:[{}],themes:[0,1,2,3].map(()=>({power:[{},{}],weakness:[{}]}))});
 function normSheets(o){const r={};if(o&&typeof o==='object')for(const s of Object.values(o)){const n=normSheet(s);r[n.id]=n}return r}
 function normRoll(r){if(!r||typeof r!=='object')return null;const kinds=['litm','d4','d6','d8','d10','d12','d20','d100'];if(!kinds.includes(r.kind))return null;
@@ -281,7 +334,7 @@ let panel=null,openSheetId=null,pendingRefresh=false;
 function openPanel(p,arg){
   if(p==='sheets'&&!GM){const ids=Object.keys(P.sheets);if(ids.length===1&&panel!=='sheet'){p='sheet';arg=ids[0]}}
   panel=p;openSheetId=p==='sheet'?arg:null;renderPanel();$('#dBody').scrollTop=0;$('#drawer').classList.add('open');document.body.classList.add('dopen');markTop()}
-function closePanel(){panel=null;openSheetId=null;$('#drawer').classList.remove('open');document.body.classList.remove('dopen');markTop()}
+function closePanel(){panel=null;openSheetId=null;$('#drawer').classList.remove('open','full');document.body.classList.remove('dopen');markTop()}
 function renderPanel(){if(!panel)return;let title='',html='';
   switch(panel){
     case 'sheets':title=GM?'Heroes':'My heroes';html=renderSheetList();break;
@@ -289,11 +342,12 @@ function renderPanel(){if(!panel)return;let title='',html='';
     case 'scenes':title='Scenes';html=renderScenes();break;
     case 'players':title=GM?'Players':'Table';html=GM?renderPlayers():renderTable();break;
     case 'menu':title='Settings';html=renderMenu();break;}
-  $('#dTitle').textContent=title;$('#dBack').hidden=panel!=='sheet';$('#dBody').innerHTML=html;pendingRefresh=false;}
+  $('#drawer').classList.toggle('full',panel==='sheet'&&isWide());$('#dTitle').textContent=title;$('#dBack').hidden=panel!=='sheet';$('#dBody').innerHTML=html;pendingRefresh=false;}
 function renderKeep(){const b=$('#dBody'),y=b.scrollTop;renderPanel();b.scrollTop=y}
 function refreshUI(w){if(panel===w)renderKeep()}
 function editingInside(){const a=document.activeElement;return a&&$('#dBody').contains(a)&&a.matches('input,textarea,select')}
 function refreshSheet(id){if(panel==='sheet'&&(id==null||openSheetId===id)){if(editingInside())pendingRefresh=true;else renderKeep()}if(panel==='sheets')renderKeep()}
+let wideNow=null;addEventListener('resize',()=>{const w=isWide();if(w!==wideNow){wideNow=w;if(panel==='sheet'&&!editingInside())renderKeep()}});
 $('#dBody').addEventListener('focusout',()=>{if(pendingRefresh)setTimeout(()=>{if(pendingRefresh&&!editingInside())renderKeep()},60)});
 
 function themeSummary(s){return s.themes.map(t=>t.title).filter(Boolean).join(' · ')||'Tap to open'}
@@ -307,36 +361,62 @@ function renderSheetList(){const list=Object.values(view().sheets);
 function track(path,v,n,numbered){return`<div class="track">${Array.from({length:n},(_,i)=>`<button class="box ${i<v?'on':''}" data-act="track" data-path="${path}" data-n="${i+1}">${numbered?i+1:''}</button>`).join('')}</div>`}
 function tagRowGen(tp,text,bp,burned,kind,ph,del){
   return`<div class="row tag ${burned?'burned':''}"><input class="in" data-path="${tp}" value="${esc(text)}" placeholder="${ph}" autocomplete="off">`+
-  (bp?`<button class="ib ${burned?'on':''}" data-act="burn" data-path="${bp}" title="Burned">🔥</button>`:'')+
+  (bp?`<button class="ib burn ${burned?'on':''}" data-act="burn" data-path="${bp}" title="Burned">🔥</button>`:'')+
   `<button class="ib rb ${kind}" data-act="roll" data-kind="${kind}" data-tp="${tp}" data-bp="${bp||''}" title="Add to roll" ${burned?'disabled':''}>${kind==='weak'?'−':'+'}</button>`+
   (del?`<button class="ib x" data-act="del" data-path="${del[0]}" data-i="${del[1]}" title="Remove">✕</button>`:'')+`</div>`}
 const tagRow=(lp,j,x,ph)=>tagRowGen(`${lp}.${j}.text`,x.text,`${lp}.${j}.burned`,x.burned,'power',ph,[lp,j]);
 const weakRow=(lp,j,x)=>tagRowGen(`${lp}.${j}.text`,x.text,null,false,'weak','Weakness tag',[lp,j]);
 const addBtn=(path,tpl)=>`<button class="add" data-act="add" data-path="${path}" data-tpl="${tpl}">+ Add</button>`;
+const MICON={Origin:'🌿',Adventure:'⚔️',Greatness:'👑'};
+const isWide=()=>innerWidth>=820&&innerWidth>innerHeight;
+
+const flipped=new Set();
+function themeCard(t,b,fellow){
+  const key=openSheetId+'|'+b,back=flipped.has(key),cls=`pc ${fellow?'fellow':'m-'+t.might.toLowerCase()}`;
+  if(back)return`<div class="${cls} back flipin">
+  <div class="pch">${fellow?'Fellowship theme card':'Theme card'}</div>
+  <div class="pcb"><div class="lbl">Special improvements</div><div class="bt">${esc(t.title||'')}</div>
+  <textarea class="in si" rows="14" data-path="${b}.notes" placeholder="Special improvements gained for this theme…">${esc(t.notes)}</textarea>
+  <button class="flip" data-act="flip" data-k="${esc(key)}">↺ Front side</button></div></div>`;
+  return`<div class="${cls}${flipped.has('was|'+key)?' flipin':''}">
+  <div class="pch">${fellow?'Fellowship theme card':'Theme card'}</div>
+  ${fellow?'':`<div class="mights">${MIGHT.map(m=>`<button class="mt ${t.might===m?'on':''}" data-act="might" data-path="${b}.might" data-v="${m}" title="${m}">${MICON[m]}<span>${m}</span></button>`).join('')}</div>`}
+  <div class="pcb">
+    ${fellow?'':`<input class="in type" data-path="${b}.book" value="${esc(t.book)}" placeholder="Type (themebook)" autocomplete="off">`}
+    <div class="ttl">${tagRowGen(`${b}.title`,t.title,`${b}.titleBurned`,t.titleBurned,'power',fellow?'Fellowship title':'Theme title',null)}</div>
+    <div class="lbl">Power tags ${addBtn(b+'.power','tag')}</div>${t.power.map((x,j)=>tagRow(b+'.power',j,x,'Power tag')).join('')}
+    <div class="lbl">Weakness ${addBtn(b+'.weakness','weak')}</div>${t.weakness.map((x,j)=>weakRow(b+'.weakness',j,x)).join('')}
+    <div class="lbl">Quest</div><textarea class="in" rows="2" data-path="${b}.quest" placeholder="What drives this theme?">${esc(t.quest)}</textarea>
+    <div class="tracks">${['abandon','improve','milestone'].map(k=>`<div>${track(`${b}.${k}`,t[k],3)}<div class="tl">${cap(k)}</div></div>`).join('')}</div>
+    <button class="flip" data-act="flip" data-k="${esc(key)}">Special improvements${t.notes.trim()?' ●':''} ↻</button>
+  </div></div>`}
 
 function renderSheet(s){
-  let h=`<div class="sheet" data-sheet="${esc(s.id)}"><input class="in hero-name" data-path="name" value="${esc(s.name)}" placeholder="Hero name" autocomplete="off">`;
-  if(GM){h+=`<div class="row owner"><span class="lab0">Player</span><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="ib" data-act="delsheet" title="Delete hero">🗑</button></div>`;
-    if(!Object.keys(S.players).length)h+=`<p class="hint">Players show up in this list after they open your invite link once.</p>`}
-  h+=`<div class="sec">Themes</div>`;
-  s.themes.forEach((t,i)=>{const b=`themes.${i}`;
-    h+=`<div class="card theme m-${t.might.toLowerCase()}">
-      <div class="row"><select class="in might" data-path="${b}.might">${MIGHT.map(m=>`<option ${t.might===m?'selected':''}>${m}</option>`).join('')}</select><input class="in" data-path="${b}.book" value="${esc(t.book)}" placeholder="Themebook" autocomplete="off"></div>
-      <div class="lbl">Title</div>${tagRowGen(`${b}.title`,t.title,`${b}.titleBurned`,t.titleBurned,'power','Theme title',null)}
-      <div class="lbl">Power tags ${addBtn(b+'.power','tag')}</div>${t.power.map((x,j)=>tagRow(b+'.power',j,x,'Power tag')).join('')}
-      <div class="lbl">Weakness ${addBtn(b+'.weakness','weak')}</div>${t.weakness.map((x,j)=>weakRow(b+'.weakness',j,x)).join('')}
-      <div class="lbl">Quest</div><textarea class="in" rows="2" data-path="${b}.quest" placeholder="What drives this theme?">${esc(t.quest)}</textarea>
-      <div class="tracks">${['abandon','improve','milestone'].map(k=>`<div><div class="lbl">${cap(k)}</div>${track(`${b}.${k}`,t[k],3)}</div>`).join('')}</div>
-      <div class="lbl">Special improvements</div><textarea class="in" rows="2" data-path="${b}.notes">${esc(t.notes)}</textarea></div>`});
-  h+=`<div class="sec">Hero</div><div class="card"><div class="lbl">Promise</div>${track('promise',s.promise,5)}
+  const player=GM
+    ?`<div class="row owner"><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select><button class="ib" data-act="delsheet" title="Delete hero">🗑</button></div>${Object.keys(S.players).length?'':'<p class="hint">Players appear here after they open your invite link once.</p>'}`
+    :`<div class="pname">${esc(me.name)}</div>`;
+  const hero=`<div class="pc herocard"><div class="pch">Hero card</div><div class="pcb">
+    <input class="in hero-name" data-path="name" value="${esc(s.name)}" placeholder="Character name" autocomplete="off">
+    <div class="lbl">Player name</div>${player}
     <div class="lbl">Fellowship relationships ${addBtn('relationships','rel')}</div>
-    ${s.relationships.map((r,j)=>`<div class="row"><input class="in rel-n" data-path="relationships.${j}.name" value="${esc(r.name)}" placeholder="Companion" autocomplete="off"><input class="in" data-path="relationships.${j}.tag" value="${esc(r.tag)}" placeholder="Relationship tag" autocomplete="off"><button class="ib rb power" data-act="roll" data-kind="power" data-tp="relationships.${j}.tag" data-bp="">+</button><button class="ib x" data-act="del" data-path="relationships" data-i="${j}">✕</button></div>`).join('')}
-    <div class="lbl">Quintessences</div><textarea class="in" rows="2" data-path="quintessences">${esc(s.quintessences)}</textarea>
-    <div class="lbl">Backpack ${addBtn('backpack','tag')}</div>${s.backpack.map((x,j)=>tagRow('backpack',j,x,'Item')).join('')}</div>`;
-  h+=`<div class="sec">Statuses ${addBtn('statuses','status')}</div><div class="card">${s.statuses.length?s.statuses.map((x,j)=>`<div class="status"><div class="row"><input class="in" data-path="statuses.${j}.name" value="${esc(x.name)}" placeholder="Status, e.g. wounded" autocomplete="off"><button class="ib rb" data-act="roll" data-kind="status" data-tp="statuses.${j}.name" data-tier="statuses.${j}.tier" title="Add to roll">±</button><button class="ib x" data-act="del" data-path="statuses" data-i="${j}">✕</button></div>${track(`statuses.${j}.tier`,x.tier,6,true)}</div>`).join(''):'<p class="hint">No statuses.</p>'}</div>`;
-  h+=`<div class="sec">Story tags ${addBtn('storyTags','tag')}</div><div class="card">${s.storyTags.length?s.storyTags.map((x,j)=>tagRow('storyTags',j,x,'Story tag')).join(''):'<p class="hint">No story tags.</p>'}</div>`;
-  h+=`<div class="sec">Notes</div><textarea class="in" rows="5" data-path="notes">${esc(s.notes)}</textarea></div>`;
-  return h}
+    ${s.relationships.map((r,j)=>`<div class="row"><input class="in rel-n" data-path="relationships.${j}.name" value="${esc(r.name)}" placeholder="Companion" autocomplete="off"><input class="in" data-path="relationships.${j}.tag" value="${esc(r.tag)}" placeholder="Relationship tag" autocomplete="off"><button class="ib rb power" data-act="roll" data-kind="power" data-tp="relationships.${j}.tag" data-bp="" title="Add to roll">+</button><button class="ib x" data-act="del" data-path="relationships" data-i="${j}" title="Remove">✕</button></div>`).join('')}
+    <div class="lbl">Promise</div>${track('promise',s.promise,5)}
+    <div class="lbl">Quintessences</div><textarea class="in" rows="3" data-path="quintessences">${esc(s.quintessences)}</textarea>
+  </div></div>`;
+  const pack=`<div class="pc"><div class="pch">Backpack &amp; notes</div><div class="pcb">
+    <div class="lbl">Backpack ${addBtn('backpack','tag')}</div>${s.backpack.map((x,j)=>tagRow('backpack',j,x,'Item')).join('')}
+    <div class="lbl">Notes</div><textarea class="in" rows="6" data-path="notes">${esc(s.notes)}</textarea>
+  </div></div>`;
+  const status=`<div class="pc"><div class="pch">Statuses &amp; story tags</div><div class="pcb">
+    <div class="lbl">Statuses ${addBtn('statuses','status')}</div>
+    ${s.statuses.length?s.statuses.map((x,j)=>`<div class="status"><div class="row"><input class="in" data-path="statuses.${j}.name" value="${esc(x.name)}" placeholder="Status, e.g. wounded" autocomplete="off"><button class="ib rb" data-act="roll" data-kind="status" data-tp="statuses.${j}.name" data-tier="statuses.${j}.tier" title="Add to roll">±</button><button class="ib x" data-act="del" data-path="statuses" data-i="${j}" title="Remove">✕</button></div>${track(`statuses.${j}.tier`,x.tier,6,true)}</div>`).join(''):'<p class="hint">No statuses.</p>'}
+    <div class="lbl">Story tags ${addBtn('storyTags','tag')}</div>
+    ${s.storyTags.length?s.storyTags.map((x,j)=>tagRow('storyTags',j,x,'Story tag')).join(''):'<p class="hint">No story tags.</p>'}
+  </div></div>`;
+  return`<div class="sheet" data-sheet="${esc(s.id)}">
+    <div class="sg">${hero}${pack}${themeCard(s.fellowship,'fellowship',true)}${status}</div>
+    <div class="sg">${s.themes.map((t,i)=>themeCard(t,`themes.${i}`,false)).join('')}</div>
+  </div>`}
 
 function renderScenes(){
   return`<div class="scene-actions"><button class="btn primary" data-act="addscene">+ Add scene</button><button class="btn" data-act="blank">Clear stage</button></div>
@@ -532,6 +612,8 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'delsheet':if(s&&await confirmBox(`Delete ${s.name||'this hero'}? This can’t be undone.`)){const o=s.ownerKey;delete S.sheets[s.id];save();if(o)pushSheetsTo(o);openPanel('sheets')}break;
     case 'add':if(s){const tpl={tag:{text:'',burned:false},weak:{text:''},rel:{name:'',tag:''},status:{name:'',tier:1}}[el.dataset.tpl];getPath(s,el.dataset.path).push(tpl);sheetChanged(s.id);renderKeep()}break;
     case 'del':if(s){getPath(s,el.dataset.path).splice(+el.dataset.i,1);sheetChanged(s.id);renderKeep()}break;
+    case 'might':if(s){setPath(s,el.dataset.path,el.dataset.v);sheetChanged(s.id);renderKeep()}break;
+    case 'flip':{const k=el.dataset.k;flipped.delete('was|'+k);if(flipped.has(k)){flipped.delete(k);flipped.add('was|'+k)}else flipped.add(k);renderKeep();setTimeout(()=>flipped.delete('was|'+k),400);break}
     case 'burn':if(s){setPath(s,el.dataset.path,!getPath(s,el.dataset.path));sheetChanged(s.id);renderKeep()}break;
     case 'track':if(s){const p=el.dataset.path,n=+el.dataset.n;setPath(s,p,getPath(s,p)===n?n-1:n);sheetChanged(s.id);renderKeep()}break;
     case 'roll':if(s)addToTray(s,el);break;
