@@ -480,7 +480,7 @@ function renderPlayers(){const online=new Set([...conns].map(c=>c._key));const e
   ${location.protocol==='file:'?'<p class="hint" style="color:var(--rust)">This page is opened as a local file, so players can’t reach it. Put it on a web host first.</p>':'<p class="hint">Players open the link on a phone, tablet or computer and type their name. Keep this page open while you play.</p>'}</div>
   <div class="sec">Players</div>${ents.length?ents.map(([k,v])=>{const n=Object.values(S.sheets).filter(s=>s.ownerKey===k).length;
     return`<div class="prow"><span class="dot ${online.has(k)?'ok':''}"></span><span class="pn">${esc(v.name)}</span><span class="hint">${n?n+(n>1?' heroes':' hero'):'no hero'}</span><button class="ib x" data-act="forget" data-k="${esc(k)}" title="Remove">✕</button></div>`}).join(''):'<p class="hint">No one has joined yet.</p>'}`}
-function renderTable(){return`<div class="card"><div class="lbl">You</div><div class="row"><b style="flex:1;font-size:18px">${esc(me.name)}</b><button class="btn" data-act="renameme">Change name</button></div></div>
+function renderTable(){return`<div class="card"><div class="lbl">You</div><div class="row"><b style="flex:1;font-size:18px">${esc(me.name)}</b><button class="btn" data-act="renameme">Change name</button></div><p class="hint">Two people playing from one computer? Each opens the link in their own window and picks themselves.</p><button class="btn" data-act="switchme">Switch player</button></div>
   <div class="mrow"><div class="grow"><b>3D acorn dice</b><small>Turn off on slow devices</small></div><button class="switch ${dice3d?'on':''}" data-act="dice3d"></button></div>
   <div class="mrow"><div class="grow"><b>Dice sound</b><small>This device only</small></div><button class="switch ${diceSound?'on':''}" data-act="dsound"></button></div>
   <div class="sec">At the table</div>${P.players.length?P.players.map(n=>`<div class="prow"><span class="dot ok"></span><span class="pn">${esc(n)}</span></div>`).join(''):'<p class="hint">Connecting…</p>'}`}
@@ -812,7 +812,8 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'sharelink':if(navigator.share){try{await navigator.share({title:'Join my Mist Table',text:'Join my Legend in the Mist table:',url:inviteLink()})}catch{}}else copyLink();break;
     case 'copylink':copyLink();break;
     case 'forget':{const k=el.dataset.k,p=S.players[k];if(p&&await confirmBox(`Remove ${p.name}? Their heroes become unassigned.`,'Remove')){delete S.players[k];for(const sh of Object.values(S.sheets))if(sh.ownerKey===k)sh.ownerKey=null;for(const c of [...conns])if(c._key===k){try{c.close()}catch{}conns.delete(c)}save();broadcastPresence();renderKeep()}break}
-    case 'renameme':{const n=await ask('Your name',me.name);if(n&&n.trim()){me.name=n.trim().slice(0,40);ls.set('mist.p.'+JOIN,me);if(conn&&conn.open)send(conn,{type:'name',name:me.name});renderKeep()}break}
+    case 'switchme':ss.del('mist.cur.'+JOIN);ss.set('mist.pick.'+JOIN,'1');if(me)ls.set(aliveKey(me.key),0);location.reload();break;
+    case 'renameme':{const n=await ask('Your name',me.name);if(n&&n.trim()){me.name=n.trim().slice(0,40);saveMe();if(conn&&conn.open)send(conn,{type:'name',name:me.name});renderKeep()}break}
     case 'export':exportBackup();break;
     case 'import':$('#importFile').click();break;
     case 'wake':wantWake=!wantWake;ls.set('mist.wake',wantWake);if(!wantWake&&wake){wake.release().catch(()=>{});wake=null}else applyWake();renderKeep();break;
@@ -847,15 +848,31 @@ function updateShowChip(){const c=$('#showChip');let t='';
   c.hidden=!t;c.textContent=t;c.classList.toggle('on',!!t)}
 async function copyLink(){const l=inviteLink();try{await navigator.clipboard.writeText(l);snack('Link copied')}catch{await ask('Copy this link',l)}}
 
+/* ---------- player identity: several people may share one browser ---------- */
+const ss={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}},del(k){try{sessionStorage.removeItem(k)}catch{}}};
+function loadIds(){let l=ls.get('mist.ids.'+JOIN,null);if(!Array.isArray(l)){l=[];const old=ls.get('mist.p.'+JOIN,null);if(old&&old.key&&old.name)l.push({key:old.key,name:old.name})}
+  return l.filter(x=>x&&typeof x.key==='string'&&x.key&&typeof x.name==='string'&&x.name)}
+function saveMe(){const l=loadIds().filter(x=>x.key!==me.key);l.push({key:me.key,name:me.name});ls.set('mist.ids.'+JOIN,l);ss.set('mist.cur.'+JOIN,me.key)}
+const aliveKey=k=>'mist.alive.'+k;
+const inUseElsewhere=k=>{const t=Number(ls.get(aliveKey(k),0));return Date.now()-t<9000};
+setInterval(()=>{if(me&&me.key)ls.set(aliveKey(me.key),Date.now())},4000);
+addEventListener('pagehide',()=>{if(me&&me.key)ls.set(aliveKey(me.key),0)});
+async function askName(){let n='';while(!n){n=((await modal(`<h3>Join the table</h3><p>What should everyone call you?</p><input class="in" placeholder="Your name" maxlength="40"><div class="mbtns"><button class="btn primary" data-m="ok">Join</button></div>`,{lock:true}))||'').trim().slice(0,40)}return n}
+async function pickIdentity(){const ids=loadIds();const cur=ss.get('mist.cur.'+JOIN);const forcePick=ss.get('mist.pick.'+JOIN);ss.del('mist.pick.'+JOIN);
+  let m=ids.find(x=>x.key===cur);
+  if(!m&&!forcePick&&ids.length===1&&!inUseElsewhere(ids[0].key))m=ids[0];
+  if(!m&&ids.length){const v=await modal(`<h3>Who’s playing in this window?</h3><div class="mlist">${ids.map(x=>`<button class="btn" data-m="${esc(x.key)}">${esc(x.name)}${inUseElsewhere(x.key)?' <small style="color:var(--dim)">(open in another window)</small>':''}</button>`).join('')}<button class="btn primary" data-m="new">I’m someone new</button></div>`,{lock:true});
+    m=ids.find(x=>x.key===v)||null}
+  if(!m)m={key:uid()+uid(),name:await askName()};
+  me={key:m.key,name:m.name};saveMe();ls.set(aliveKey(me.key),Date.now());return me}
+
 /* ---------- start ---------- */
 async function init(){buildTop();renderTray();
   if(GM){let st=null;try{st=await idb.get('state')}catch(e){console.warn(e)}S=normState(st);if(!st)await saveNow();
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
     renderFeed();const sc=S.scenes.find(x=>x.id===S.current);if(sc){let img='';try{img=await idb.get('img:'+sc.id)||''}catch{}setStage(img,sc)}
     startHost()}
-  else{me=ls.get('mist.p.'+JOIN,null);if(!me||!me.key)me={key:uid()+uid(),name:''};
-    while(!me.name){const n=await modal(`<h3>Join the table</h3><p>What should everyone call you?</p><input class="in" placeholder="Your name" maxlength="40"><div class="mbtns"><button class="btn primary" data-m="ok">Join</button></div>`,{lock:true});me.name=(n||'').trim().slice(0,40)}
-    ls.set('mist.p.'+JOIN,me);startPlayer()}
+  else{me=await pickIdentity();startPlayer()}
   applyWake();if(dice3d)loadThree()}
 init();
 })();
