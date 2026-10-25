@@ -169,6 +169,21 @@ select.in option{background:#1a1f22;color:var(--ink)}
 .hdel{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:1;width:34px;height:34px;border-radius:8px;border:none;background:transparent;font-size:15px;opacity:.35;filter:grayscale(1);padding:0}
 .hdel:hover,.hdel:focus-visible{opacity:1;filter:none;background:rgba(222,131,112,.15)}
 .btn.danger{background:#b4472f;color:#fff;border-color:transparent}
+#showcase{position:fixed;inset:0;z-index:36;background:rgba(20,16,13,.97);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+#showcase .dh h2{display:flex;flex-direction:column;font-size:24px;line-height:1.1}
+#showcase .dh small{font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+#showcase .scb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(96px + env(safe-area-inset-bottom))}
+#showcase .sheet{max-width:1800px;margin:0 auto}
+#showcase.wide .sg{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+#showcase button:disabled{opacity:1;cursor:default}
+#showcase .mt:not(.on){opacity:.4}
+#showcase .ib.rb,#showcase .ib.x,#showcase .add,#showcase .pdel{display:none}
+#showcase .pimg.empty{visibility:hidden}
+#showcase .ib.burn:not(.on){visibility:hidden}
+#showcase .in{caret-color:transparent}
+#showChip{flex:none}
+@media (max-width:560px){#showChip{max-width:40vw;overflow:hidden;text-overflow:ellipsis}}
+#dShow{min-height:36px;padding:6px 12px;font-size:14px}
 /* scenes */
 .scene-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .scenes{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
@@ -249,9 +264,10 @@ select.in option{background:#1a1f22;color:var(--ink)}
   <div id="L0" class="layer"></div><div id="L1" class="layer"></div>
   <div id="empty"><div class="mist m1"></div><div class="mist m2"></div><div class="etxt"><div class="etitle">Mist Table</div><div class="esub" id="emptySub"></div></div></div>
 </div>
-<div id="top"><div id="sceneName"></div><div id="net"><span class="dot"></span><span class="lab">Starting…</span></div><div class="tb" id="tb"></div></div>
+<div id="top"><div id="sceneName"></div><button class="btn" id="showChip" data-act="showchip" hidden></button><div id="net"><span class="dot"></span><span class="lab">Starting…</span></div><div class="tb" id="tb"></div></div>
 <div id="feed"></div>
-<aside id="drawer"><div class="dh"><button class="ib" id="dBack" data-act="back" hidden>‹</button><h2 id="dTitle"></h2><button class="ib" data-act="close">✕</button></div><div id="dBody"></div></aside>
+<div id="showcase" hidden><div class="dh"><h2><small>The GM is showing</small><span class="sct"></span></h2><button class="ib" data-act="scclose" aria-label="Close">✕</button></div><div class="scb"></div></div>
+<aside id="drawer"><div class="dh"><button class="ib" id="dBack" data-act="back" hidden>‹</button><h2 id="dTitle"></h2><button class="btn" id="dShow" data-act="showcase" hidden></button><button class="ib" data-act="close">✕</button></div><div id="dBody"></div></aside>
 <div id="tray">
   <h3>Roll <button class="add" data-act="cleartray">Clear</button></h3>
   <div class="chips" id="trayChips"></div>
@@ -326,7 +342,7 @@ const view=()=>GM?S:P;
 const myName=()=>GM?'GM':me.name;
 
 let saveT;
-const save=()=>{clearTimeout(saveT);saveT=setTimeout(saveNow,400);if(GM)scheduleParty()};
+const save=()=>{clearTimeout(saveT);saveT=setTimeout(saveNow,400);if(GM){scheduleParty();if(showcaseId)scheduleShowcase()}};
 async function saveNow(){clearTimeout(saveT);try{await idb.set('state',S)}catch(e){snack('Could not save: '+(e&&e.message||e))}}
 
 /* ---------- UI bits ---------- */
@@ -370,12 +386,13 @@ function renderPanel(){if(!panel)return;let title='',html='';
     case 'scenes':title='Scenes';html=renderScenes();break;
     case 'players':title=GM?'Players':'Table';html=GM?renderPlayers():renderTable();break;
     case 'menu':title='Settings';html=renderMenu();break;}
-  $('#drawer').classList.toggle('full',panel==='sheet'&&isWide());$('#dTitle').textContent=title;$('#dBack').hidden=panel!=='sheet';$('#dBody').innerHTML=html;pendingRefresh=false;}
+  $('#drawer').classList.toggle('full',panel==='sheet'&&isWide());$('#dTitle').textContent=title;$('#dBack').hidden=panel!=='sheet';$('#dBody').innerHTML=html;pendingRefresh=false;
+  const sb=$('#dShow');sb.hidden=!(GM&&panel==='sheet');if(!sb.hidden){const on=showcaseId===openSheetId;sb.textContent=on?'Stop showing':'👁 Show to all';sb.classList.toggle('on',on)}}
 function renderKeep(){const b=$('#dBody'),y=b.scrollTop;renderPanel();b.scrollTop=y}
 function refreshUI(w){if(panel===w)renderKeep()}
 function editingInside(){const a=document.activeElement;return a&&$('#dBody').contains(a)&&a.matches('input,textarea,select')}
 function refreshSheet(id){if(panel==='sheet'&&(id==null||openSheetId===id)){if(editingInside())pendingRefresh=true;else renderKeep()}if(panel==='sheets')renderKeep()}
-let wideNow=null;addEventListener('resize',()=>{const w=isWide();if(w!==wideNow){wideNow=w;if(panel==='sheet'&&!editingInside())renderKeep()}});
+let wideNow=null;addEventListener('resize',()=>{const w=isWide();if(w!==wideNow){wideNow=w;if(panel==='sheet'&&!editingInside())renderKeep();if(!GM)renderShowcase()}});
 $('#dBody').addEventListener('focusout',()=>{if(pendingRefresh)setTimeout(()=>{if(pendingRefresh&&!editingInside())renderKeep()},60)});
 
 function themeSummary(s){return s.themes.map(t=>t.title).filter(Boolean).join(' · ')||'Tap to open'}
@@ -405,7 +422,7 @@ const isWide=()=>innerWidth>=820&&innerWidth>innerHeight;
 
 const flipped=new Set();
 function themeCard(t,b,fellow){
-  const key=openSheetId+'|'+b,back=flipped.has(key),cls=`pc ${fellow?'fellow':'m-'+t.might.toLowerCase()}`;
+  const key=(renderCtx||openSheetId)+'|'+b,back=flipped.has(key),cls=`pc ${fellow?'fellow':'m-'+t.might.toLowerCase()}`;
   if(back)return`<div class="${cls} back flipin">
   <div class="pch">${fellow?'Fellowship theme card':'Theme card'}</div>
   <div class="pcb"><div class="lbl">Special improvements</div><div class="bt">${esc(t.title||'')}</div>
@@ -424,10 +441,11 @@ function themeCard(t,b,fellow){
     <button class="flip" data-act="flip" data-k="${esc(key)}">Special improvements${t.notes.trim()?' ●':''} ↻</button>
   </div></div>`}
 
-function renderSheet(s){
-  const player=GM
+let renderCtx=null;
+function renderSheet(s,ro){
+  const player=GM&&!ro
     ?`<div class="row owner"><select class="in" data-path="ownerKey"><option value="">— Not assigned —</option>${Object.entries(S.players).map(([k,v])=>`<option value="${esc(k)}" ${s.ownerKey===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select></div>${Object.keys(S.players).length?'':'<p class="hint">Players appear here after they open your invite link once.</p>'}`
-    :`<div class="pname">${esc(me.name)}</div>`;
+    :`<div class="pname">${esc(ro?(s._player||'—'):me.name)}</div>`;
   const hero=`<div class="pc herocard"><div class="pch">Hero card</div><div class="pcb">
     <div class="hero-top"><div class="portrait">${s.portrait?`<button class="pimg" data-act="portrait" style="background-image:url('${s.portrait}')" title="Change picture"></button><button class="ib x pdel" data-act="noportrait" title="Remove picture">✕</button>`:`<button class="pimg empty" data-act="portrait" title="Add picture"><span>＋</span>Picture</button>`}</div>
     <div class="hero-id"><input class="in hero-name" data-path="name" value="${esc(s.name)}" placeholder="Character name" autocomplete="off">
@@ -646,7 +664,7 @@ function dropConn(c){if(conns.delete(c)){broadcastPresence();refreshUI('players'
 function onGMData(c,d){if(!d||typeof d!=='object')return;
   if(d.type==='hello'){const key=str(d.key,60);if(!key)return;const name=str(d.name,40).trim()||'Player';
     c._key=key;conns.add(c);const isNew=!S.players[key];S.players[key]={name};save();
-    send(c,{type:'welcome',sheets:sheetsFor(key),log:S.log.slice(-20),players:presence()});sendScene(c);
+    send(c,{type:'welcome',sheets:sheetsFor(key),log:S.log.slice(-20),players:presence(),showcase:showcaseMsg().sheet});sendScene(c);
     broadcastPresence();refreshUI('players');refreshSheet(null);if(isNew)snack(name+' joined');return}
   const key=c._key;if(!key||!conns.has(c))return;
   if(d.type==='sheet'){const cur=d.sheet&&S.sheets[d.sheet.id];if(!cur||cur.ownerKey!==key)return;
@@ -694,8 +712,9 @@ function onPlayerData(d){if(!d||typeof d!=='object')return;
   if(d.type==='welcome'||d.type==='sheets'){const incoming=normSheets(d.sheets);
     for(const id of dirty){if(incoming[id]&&P.sheets[id]){incoming[id]=P.sheets[id];setTimeout(()=>flushSheet(id),100)}}
     P.sheets=incoming;
-    if(d.type==='welcome'){P.log=arr(d.log,20,normRoll).filter(Boolean);P.players=arr(d.players,50,x=>str(x,40));renderFeed();refreshUI('players')}
+    if(d.type==='welcome'){onShowcase(d.showcase||null);P.log=arr(d.log,20,normRoll).filter(Boolean);P.players=arr(d.players,50,x=>str(x,40));renderFeed();refreshUI('players')}
     if(panel==='sheet'&&!P.sheets[openSheetId])openPanel('sheets');else refreshSheet(openSheetId)}
+  else if(d.type==='showcase')onShowcase(d.sheet);
   else if(d.type==='scene'){const sc=d.scene;if(!sc){P.scene=null;setStage(null);return}
     P.scene={id:str(sc.id,40),name:str(sc.name,80),fit:sc.fit==='contain'?'contain':'cover'};setStage(isImg(sc.img)?sc.img:'',P.scene)}
   else if(d.type==='roll'){const r=normRoll(d.roll);if(r){addRoll(r);showRoll(r)}}
@@ -770,7 +789,10 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
     case 'add':if(s){const tpl={tag:{text:'',burned:false},weak:{text:''},rel:{name:'',tag:''},status:{name:'',tier:1}}[el.dataset.tpl];getPath(s,el.dataset.path).push(tpl);sheetChanged(s.id);renderKeep()}break;
     case 'del':if(s){getPath(s,el.dataset.path).splice(+el.dataset.i,1);sheetChanged(s.id);renderKeep()}break;
     case 'might':if(s){setPath(s,el.dataset.path,el.dataset.v);sheetChanged(s.id);renderKeep()}break;
-    case 'flip':{const k=el.dataset.k;flipped.delete('was|'+k);if(flipped.has(k)){flipped.delete(k);flipped.add('was|'+k)}else flipped.add(k);renderKeep();setTimeout(()=>flipped.delete('was|'+k),400);break}
+    case 'showcase':if(openSheetId)toggleShowcase(openSheetId);break;
+    case 'showchip':if(GM){showcaseId=null;sendShowcase();renderKeep();snack('Stopped showing')}else{scDismissed=false;renderShowcase()}break;
+    case 'scclose':scDismissed=true;renderShowcase();break;
+    case 'flip':{const k=el.dataset.k;flipped.delete('was|'+k);if(flipped.has(k)){flipped.delete(k);flipped.add('was|'+k)}else flipped.add(k);if(el.closest('#showcase'))renderShowcase();else renderKeep();setTimeout(()=>flipped.delete('was|'+k),400);break}
     case 'portrait':if(s){portraitFor=s.id;$('#portraitFile').click()}break;
     case 'noportrait':if(s){s.portrait='';sheetChanged(s.id);renderKeep()}break;
     case 'burn':if(s){setPath(s,el.dataset.path,!getPath(s,el.dataset.path));sheetChanged(s.id);renderKeep()}break;
@@ -803,7 +825,26 @@ async function deleteHero(s){const name=s.name||'this hero';
   const p=modal(`<h3>Delete hero?</h3><p>This permanently deletes <b>${esc(name)}</b> and everything on the sheet. It can’t be undone${s.ownerKey&&S.players[s.ownerKey]?`, and ${esc(S.players[s.ownerKey].name)} loses access to it`:''}.</p><p>Type <b>delete</b> to confirm.</p><input class="in" placeholder="delete" autocomplete="off" autocapitalize="off"><div class="mbtns"><button class="btn" data-m="cancel">Cancel</button><button class="btn danger" data-m="ok" disabled>Delete forever</button></div>`);
   const inp=$('#modal input'),ok=$('#modal [data-m=ok]');inp.addEventListener('input',()=>{ok.disabled=inp.value.trim().toLowerCase()!=='delete'});
   const v=await p;if(v==null)return;if(String(v).trim().toLowerCase()!=='delete'){snack('Not deleted — type “delete” to confirm');return}
-  const o=s.ownerKey;delete S.sheets[s.id];await saveNow();if(o)pushSheetsTo(o);scheduleParty();openPanel('sheets');snack(name+' deleted')}
+  const o=s.ownerKey;delete S.sheets[s.id];await saveNow();if(o)pushSheetsTo(o);scheduleParty();if(showcaseId===s.id){showcaseId=null;sendShowcase()}openPanel('sheets');snack(name+' deleted')}
+/* ---------- show one hero sheet to everyone (read-only, live) ---------- */
+let showcaseId=null,showT,scDismissed=false;const showSent=new WeakMap();
+function showcaseMsg(){const h=GM&&showcaseId&&S.sheets[showcaseId];if(!h)return{type:'showcase',sheet:null};
+  return{type:'showcase',sheet:{...h,ownerKey:null,_player:h.ownerKey&&S.players[h.ownerKey]?S.players[h.ownerKey].name:''}}}
+function scheduleShowcase(){clearTimeout(showT);showT=setTimeout(sendShowcase,300)}
+function sendShowcase(){clearTimeout(showT);if(showcaseId&&!S.sheets[showcaseId])showcaseId=null;const m=showcaseMsg(),js=JSON.stringify(m);
+  for(const c of conns){if(!c._key||showSent.get(c)===js)continue;showSent.set(c,js);send(c,m)}updateShowChip()}
+function toggleShowcase(id){showcaseId=showcaseId===id?null:id;sendShowcase();renderKeep();snack(showcaseId?'Everyone can now see '+(S.sheets[id].name||'this hero'):'Stopped showing')}
+function onShowcase(sh){const prev=P.showcase;P.showcase=sh&&typeof sh==='object'?{...normSheet(sh),_player:str(sh._player,40)}:null;
+  if(!P.showcase||!prev||prev.id!==P.showcase.id)scDismissed=false;renderShowcase();updateShowChip()}
+function renderShowcase(){const el=$('#showcase'),s=P.showcase;if(!s||scDismissed){el.hidden=true;return}
+  el.hidden=false;el.classList.toggle('wide',isWide());const b=el.querySelector('.scb'),y=b.scrollTop;
+  renderCtx='sc:'+s.id;b.innerHTML=renderSheet(s,true);renderCtx=null;b.scrollTop=y;
+  b.querySelectorAll('input,textarea').forEach(e=>{e.readOnly=true;e.tabIndex=-1});b.querySelectorAll('select').forEach(e=>e.disabled=true);
+  b.querySelectorAll('button:not(.flip)').forEach(e=>e.disabled=true);el.querySelector('.sct').textContent=s.name||'Unnamed hero'}
+function updateShowChip(){const c=$('#showChip');let t='';
+  if(GM){const h=showcaseId&&S.sheets[showcaseId];if(h)t='👁 Showing '+(h.name||'hero')+' · Stop'}
+  else if(P.showcase)t='👁 '+(P.showcase.name||'Hero');
+  c.hidden=!t;c.textContent=t;c.classList.toggle('on',!!t)}
 async function copyLink(){const l=inviteLink();try{await navigator.clipboard.writeText(l);snack('Link copied')}catch{await ask('Copy this link',l)}}
 
 /* ---------- start ---------- */
